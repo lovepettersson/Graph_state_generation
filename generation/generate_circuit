@@ -1,0 +1,209 @@
+import networkx as nx
+import numpy as np
+import json
+from lc_equivalence import check_LCequiv
+
+import cirq
+from cirq.ops import CZ, H, S, Z, I, X
+
+def counter(graph_number):
+    tracker = 0
+    for key in the_dict:
+        if key == "1":
+            tracker += 1
+        else:
+            class_tracker = 0
+            for classes in the_dict[key]:
+                for graphs in classes["nodes"]:
+                    tracker += 1
+                    if tracker == graph_number:
+                        idx = graphs["id"]
+                        source_list = {}
+                        source_list["class"] = class_tracker
+                        source_list["key"] = key
+                        source_list["source"] = []
+                        source_list["target"] = []
+                        source_list["equivs"] = []
+                        source_list["graph"] = []
+                        source_list["graph"].append(classes["nodes"][0]["edges"])
+                        source_list["graph"].append(graphs["edges"])
+                        running = True
+                        while running == True:
+                            if 0 in source_list["source"]:
+                                running = False
+                            else:
+                                source_search = source(classes["links"], idx)
+                                source_list["target"].append(source_search[0][0])
+                                source_list["source"].append(source_search[1][0])
+                                source_list["equivs"].append(source_search[2][0])
+                                idx = source_search[1][0]
+                class_tracker += 1
+
+    return source_list
+
+def track_LC_seq(link_list, idx, class_tracker, key):
+
+    source_list = {}
+    source_list["class"] = class_tracker
+    source_list["key"] = key
+    source_list["source"] = []
+    source_list["target"] = []
+    source_list["equivs"] = []
+    running = True
+    while running == True:
+        if 0 in source_list["source"]:
+            running = False
+        else:
+            source_search = source(link_list, idx)
+            source_list["target"].append(source_search[0][0])
+            source_list["source"].append(source_search[1][0])
+            source_list["equivs"].append(source_search[2][0])
+
+            idx = source_search[1][0]
+    return source_list
+
+def source(link_list, idx):
+    target_list = []
+    source_list = []
+    equiv_list = []
+    for targets in link_list:
+        if targets["target"] == idx:
+            if targets["source"] == 0:
+                target_list.append(targets["target"])
+                source_list.append(targets["source"])
+                equiv_list.append(targets["equivs"][0][0])
+            else:
+                target_list.append(targets["target"])
+                source_list.append(targets["source"])
+                equiv_list.append(targets["equivs"][0][0])
+
+    return target_list, source_list, equiv_list
+
+
+
+def get_graph(edges):
+    the_edges = []
+    for edge in edges:
+        the_edges.append(tuple(edge[:-1]))
+    graph = nx.Graph()
+    graph.add_edges_from(the_edges)
+    return graph
+
+def second_search(the_dict, the_key, graph):
+    class_tracker = 0
+    for classes in the_dict[str(int(the_key) - 1)]:
+        edges_check = (classes["nodes"][0]["edges"])
+        graph_check = get_graph(edges_check)
+        is_equiv, local_ops = check_LCequiv(graph, graph_check)
+        if is_equiv == True:
+            adjMat = nx.adjacency_matrix(graph).todense()
+            for graphs in classes["nodes"]:
+                edges_check = (graphs["edges"])
+                graph_check = get_graph(edges_check)
+                new_adjMat = nx.adjacency_matrix(graph_check).todense()
+                if np.array_equal(adjMat, new_adjMat):
+                    the_id = graphs["id"]
+                    if the_id == 0:
+                        sequence = {"key": str(int(the_key) - 1), "class": class_tracker, "target": 0, "source": 0, "equivs": [0]}
+                        return sequence
+                    else:
+
+                        link_list = classes["links"]
+                        idx = the_id
+                        key = str(int(the_key) - 1)
+                        sequence = track_LC_seq(link_list, idx, class_tracker, key)
+                        return sequence
+        class_tracker += 1
+
+def local_complement(target, neigh):
+    circuit.append([H(target), S(target), H(target)])
+    for neighbour in neigh:
+        circuit.append([S(neighbour), Z(neighbour)])
+
+def print_circuit():
+    q = cirq.LineQubit.range(int(key_list[0]) + 1)
+    circuit.append([H(qubit) for qubit in q])
+    if len(iter_dict["2"][0]) == 3:
+        circuit.append([CZ(q[0], q[1]), CZ(q[0], q[2]), CZ(q[1], q[2])])
+    else:
+        circuit.append([CZ(q[0], q[1]), CZ(q[0], q[2])])
+    for i in reversed(key_list):
+        if int(i) == 2:
+            continue
+        else:
+            if iter_dict[i]["target"] == 0 and iter_dict[i]["source"] == 0:
+                circuit.append([CZ(q[0], q[int(i)])])
+            else:
+                circuit.append([CZ(q[0], q[int(i)])])
+                the_class = iter_dict[i]["class"]
+                length = [n for n in range(len(iter_dict[i]["equivs"]))]
+                for j in reversed(length):
+                    LC_node = iter_dict[i]["source"][j]
+                    edge_final = the_dict[i][the_class]["nodes"][LC_node]["edges"]
+                    graph_final = get_graph(edge_final)
+                    target = iter_dict[i]["equivs"][j]
+                    neigbours = [n for n in graph_final.neighbors(target)]
+                    local_complement(q[target], [q[i] for i in neigbours])
+
+    print(circuit)
+    result = cirq.Simulator().simulate(circuit).final_state_vector
+    print(result)
+
+def sanity_check(iter_dict):
+    circuit_2 = cirq.Circuit()
+    q = cirq.LineQubit.range(int(key_list[0]) + 1)
+    circuit_2.append([H(qubit) for qubit in q])
+    for edge in iter_dict[key_list[0]]["graph"][0]:
+        circuit_2.append([CZ(q[edge[0]], q[edge[1]])])
+    result = cirq.Simulator().simulate(circuit_2).final_state_vector
+    print(result)
+
+def generation(graph_numb):
+    outcome = counter(graph_numb)
+    the_key = outcome["key"]
+    the_class = outcome["class"]
+    id0 = the_dict[the_key][int(the_class)]["nodes"][0]
+    edges = id0["edges"]
+    graph = get_graph(edges)
+    graph.remove_node(int(the_key))
+    iter_dict = {}
+    iter_dict[str(the_key)] = outcome
+
+    while int(the_key) > 2:
+        new_dict = second_search(the_dict, the_key, graph)
+        the_key = str(new_dict["key"])
+        the_class = int(new_dict["class"])
+        iter_dict[str(the_key)] = new_dict
+        id0 = the_dict[the_key][the_class - 1]["nodes"][0]
+        edges = id0["edges"]
+        graph = get_graph(edges)
+        graph.remove_node(int(the_key))
+    edge_final = the_dict["3"][1]["nodes"][0]["edges"]
+    graph_final = get_graph(edge_final)
+    graph_final.remove_node(3)
+    iter_dict["2"] = []
+    if graph_final.number_of_edges == 2:
+        iter_dict["2"].append(the_dict["2"][0]["nodes"][0]["edges"])
+    else:
+        iter_dict["2"].append(the_dict["2"][0]["nodes"][1]["edges"])
+
+    key_list = []
+    for key in iter_dict:
+        key_list.append(key)
+
+    return iter_dict
+
+if __name__ == "__main__":
+    path = r"C:\Users\Admin\data_8_qubits_no_isomorph.json"
+    f = open(path)
+    the_dict = json.load(f)
+    iter_dict = generation(50)
+    key_list = []
+
+    for key in iter_dict:
+        key_list.append(key)
+        
+    circuit = cirq.Circuit()
+    result0 = print_circuit()
+    result1 = sanity_check(iter_dict)
+    print(np.array_equal(result0, result1))
