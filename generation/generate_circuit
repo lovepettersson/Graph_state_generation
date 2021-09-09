@@ -7,6 +7,9 @@ import cirq
 from cirq.ops import CZ, H, S, Z, I, X
 
 def counter(graph_number):
+    """ Function to find the LC-sequence of given graph down to graph with id:0 in given LC-class"""
+    ### TODO ###
+    # Clean up, maybe try to make it possible for others to understand (this includes me in a week)
     tracker = 0
     for key in the_dict:
         if key == "1":
@@ -42,7 +45,7 @@ def counter(graph_number):
     return source_list
 
 def track_LC_seq(link_list, idx, class_tracker, key):
-
+    """ Function to give the full LC-sequence given first id:0 graph"""
     source_list = {}
     source_list["class"] = class_tracker
     source_list["key"] = key
@@ -63,6 +66,7 @@ def track_LC_seq(link_list, idx, class_tracker, key):
     return source_list
 
 def source(link_list, idx):
+    """ Function to track given graph down to graph with id:0"""
     target_list = []
     source_list = []
     equiv_list = []
@@ -82,6 +86,7 @@ def source(link_list, idx):
 
 
 def get_graph(edges):
+    """ Function that given this weird list of edges produces the corresponding graph """
     the_edges = []
     for edge in edges:
         the_edges.append(tuple(edge[:-1]))
@@ -90,6 +95,8 @@ def get_graph(edges):
     return graph
 
 def second_search(the_dict, the_key, graph):
+    """ Starts the second, third, etc.. round of search. This search is slightly different
+    from the first. Hence, the new function..."""
     class_tracker = 0
     for classes in the_dict[str(int(the_key) - 1)]:
         edges_check = (classes["nodes"][0]["edges"])
@@ -116,11 +123,13 @@ def second_search(the_dict, the_key, graph):
         class_tracker += 1
 
 def local_complement(target, neigh):
+    """ Function to perform LC in the circuit given the target and its neighbours"""
     circuit.append([H(target), S(target), H(target)])
     for neighbour in neigh:
         circuit.append([S(neighbour), Z(neighbour)])
 
 def print_circuit():
+    """ Function that creates the circuit that builds the graph state from scratch"""
     q = cirq.LineQubit.range(int(key_list[0]) + 1)
     circuit.append([H(qubit) for qubit in q])
     if len(iter_dict["2"][0]) == 3:
@@ -150,6 +159,8 @@ def print_circuit():
     print(result)
 
 def sanity_check(iter_dict):
+    """ Function for sanity check if the circuit including the LC-ops actually produces the
+    correct graph state"""
     circuit_2 = cirq.Circuit()
     q = cirq.LineQubit.range(int(key_list[0]) + 1)
     circuit_2.append([H(qubit) for qubit in q])
@@ -159,6 +170,7 @@ def sanity_check(iter_dict):
     print(result)
 
 def generation(graph_numb):
+    """ Main function called for the generation, includes most else functions"""
     outcome = counter(graph_numb)
     the_key = outcome["key"]
     the_class = outcome["class"]
@@ -194,15 +206,18 @@ def generation(graph_numb):
     return iter_dict
 
 if __name__ == "__main__":
+    # Import json with data
     path = r"C:\Users\Admin\data_8_qubits_no_isomorph.json"
     f = open(path)
     the_dict = json.load(f)
+    # Generate the LC-sequence
     iter_dict = generation(50)
     key_list = []
 
     for key in iter_dict:
         key_list.append(key)
-        
+
+    # Build and print the circuit
     circuit = cirq.Circuit()
     result0 = print_circuit()
     result1 = sanity_check(iter_dict)
