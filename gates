@@ -1,0 +1,169 @@
+import cirq
+import numpy as np
+
+
+####################### QUDIT GATES ############################
+
+class QuditEarlyPhoton(cirq.TwoQubitGate):
+    # beta to be 1 in ideal case
+    def __init__(self, beta):
+        super(QuditEarlyPhoton, self)
+        self.beta = beta
+
+    def _qid_shape_(self):
+        return (4,4)
+    def _unitary_(self):
+        photo = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, ((1 - (self.beta ** (2))) ** (1 / 2)), 0, 0, 0, 0, 0, 0, 0, 0, 0, self.beta, 0, 0, 0],
+                          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, ((1 - (self.beta ** (2))) ** (1 / 2)), 0, self.beta, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, self.beta, 0, -((1 - (self.beta ** (2))) ** (1 / 2)), 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                          [0, 0, self.beta, 0, 0, 0, 0, 0, 0, 0, 0, 0, -((1 - (self.beta ** (2))) ** (1 / 2)), 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
+        return photo
+
+    def _circuit_diagram_info_(self, args):
+        return "Decaying", "Early-Photon"
+
+class QuditLatePhoton(cirq.TwoQubitGate):
+    # beta to be 1 in ideal case
+    def __init__(self, beta):
+        super(QuditLatePhoton, self)
+        self.beta = beta
+
+    def _qid_shape_(self):
+        return (4,4)
+    def _unitary_(self):
+        #NOTE: Fix photo_2 matrix
+        x = ((1 - (self.beta ** (2))) ** (1 / 2))
+        photo = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                          [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
+
+        return photo
+
+    def _circuit_diagram_info_(self, args):
+        return "Decaying", "Late-Photon"
+
+class QuditPiHalfGate(cirq.SingleQubitGate):
+    # delta to be 0 in ideal case
+    def __init__(self, delta):
+        super(QuditPiHalfGate, self)
+        self.delta = delta
+
+    def _qid_shape_(self):
+        return (4,)
+
+    def _unitary_(self):
+        half = np.array([[np.sin(np.pi * (1 + self.delta) / 4), np.cos(np.pi * (1 + self.delta) / 4), 0, 0],
+                         [np.cos(np.pi * (1 + self.delta) / 4), -np.sin(np.pi * (1 + self.delta) / 4), 0, 0],
+                         [0, 0, 1, 0],
+                         [0, 0, 0, 1],
+                         ])
+        return half
+
+    def _circuit_diagram_info_(self, args):
+        return 'Hadamard'
+
+class QuditExcGate(cirq.SingleQubitGate):
+    #delta0 to be 0 in ideal case ---> Which I guess is actually the inverse to having large detuning
+    def __init__(self, delta0):
+        super(QuditExcGate, self)
+        self.delta0 = delta0
+
+    def _qid_shape_(self):
+        return (4,)
+
+    def _unitary_(self):
+        exc_matrix = np.array([[np.cos(np.pi * self.delta0 / 2), 0, 0, np.sin(np.pi * self.delta0 / 2)],
+                               [0, 0, 1, 0],
+                               [0, 1, 0, 0],
+                               [-np.sin(np.pi * self.delta0 / 2), 0, 0, np.cos(np.pi * self.delta0 / 2)],
+                               ])
+
+        return exc_matrix
+
+    def _circuit_diagram_info_(self, args):
+        return 'Excitation'
+
+class QuditPiGate(cirq.SingleQubitGate):
+    #delta to be 0 in ideal case
+    def __init__(self, delta):
+        super(QuditPiGate, self)
+        self.delta = delta
+
+    def _qid_shape_(self):
+        return (4,)
+
+    def _unitary_(self):
+        s_matrix = np.array([[np.sin(np.pi * self.delta / 2), np.cos(np.pi * self.delta / 2), 0, 0],
+                             [np.cos(np.pi * self.delta / 2), -np.sin(np.pi * self.delta / 2), 0, 0],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1],
+                             ])
+        return s_matrix
+
+    def _circuit_diagram_info_(self, args):
+        return 'Pi-Rotation'
+
+class QuditDepGate(cirq.SingleQubitGate):
+    #deltaOH ---> random phase shift to the 1 component of the spin
+    def __init__(self, deltaOH):
+        super(QuditDepGate, self)
+        self.deltaOH = deltaOH
+
+    def _qid_shape_(self):
+        return (4,)
+
+    def _unitary_(self):
+        exc_matrix = np.array([[1, 0, 0, 0],
+                               [0, np.exp(1j * self.deltaOH), 0, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1],
+                               ])
+
+        return exc_matrix
+
+    def _circuit_diagram_info_(self, args):
+        return 'Dephasing'
+
+if __name__ == "__main__":
+    this_gate0 = QuditEarlyPhoton(1)
+    this_gate1 = QuditPiHalfGate(0)
+    this_gate2 = QuditExcGate(0)
+    this_gate3 = QuditPiGate(0)
+    this_gate4 = QuditLatePhoton(0)
+    this_gate5 = QuditDepGate(np.pi/4)
+    q0 = cirq.LineQid(0, dimension=4)
+    q1 = cirq.LineQid(1, dimension=4)
+    q2 = cirq.LineQid(2, dimension=4)
+    circuit = cirq.Circuit(
+        this_gate1.on(q0), this_gate5.on(q0), this_gate2.on(q0), this_gate0.on(q0, q1),  this_gate3.on(q0), this_gate2.on(q0),
+        this_gate4.on(q0, q1), this_gate2.on(q0), this_gate0.on(q0, q2), this_gate3.on(q0), this_gate2.on(q0),
+        this_gate4.on(q0, q2)
+
+    )
+    print(circuit)
+    print(cirq.Simulator().simulate(circuit).final_state_vector)
