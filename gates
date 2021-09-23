@@ -1,31 +1,31 @@
 import cirq
 import numpy as np
-
-
 ####################### QUDIT GATES ############################
 
 class QuditEarlyPhoton(cirq.TwoQubitGate):
     # beta to be 1 in ideal case
-    def __init__(self, beta):
+    def __init__(self, beta_par, beta_ort):
         super(QuditEarlyPhoton, self)
-        self.beta = beta
+        self.beta_par = beta_par
+        self.beta_ort = beta_ort
 
     def _qid_shape_(self):
         return (4,4)
     def _unitary_(self):
+        lamb = (1 - (self.beta_par ** 2) - (self.beta_ort) ** 2) ** (1 / 2)
         photo = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                           [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                          [0, 0, ((1 - (self.beta ** (2))) ** (1 / 2)), 0, 0, 0, 0, 0, 0, 0, 0, 0, self.beta, 0, 0, 0],
+                          [0, 0, lamb, 0, 0, 0, 0, 0, self.beta_ort, 0, 0, 0, self.beta_par, 0, 0, 0],
                           [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                           [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                           [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                          [0, 0, 0, 0, 0, 0, ((1 - (self.beta ** (2))) ** (1 / 2)), 0, self.beta, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, lamb, 0, -self.beta_par, 0, 0, 0, self.beta_ort, 0, 0, 0],
                           [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                          [0, 0, 0, 0, 0, 0, self.beta, 0, -((1 - (self.beta ** (2))) ** (1 / 2)), 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, -self.beta_ort, 0, 0, 0, self.beta_par, 0, lamb, 0, 0, 0, 0, 0, 0, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-                          [0, 0, self.beta, 0, 0, 0, 0, 0, 0, 0, 0, 0, -((1 - (self.beta ** (2))) ** (1 / 2)), 0, 0, 0],
+                          [0, 0, -self.beta_par, 0, 0, 0, -self.beta_ort, 0, 0, 0, 0, 0, lamb, 0, 0, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
@@ -36,36 +36,70 @@ class QuditEarlyPhoton(cirq.TwoQubitGate):
 
 class QuditLatePhoton(cirq.TwoQubitGate):
     # beta to be 1 in ideal case
-    def __init__(self, beta):
+    def __init__(self, beta_par, beta_ort):
         super(QuditLatePhoton, self)
-        self.beta = beta
+        self.beta_par = beta_par
+        self.beta_ort = beta_ort
 
     def _qid_shape_(self):
         return (4,4)
     def _unitary_(self):
-        #NOTE: Fix photo_2 matrix
-        x = ((1 - (self.beta ** (2))) ** (1 / 2))
+
+        lamb = (1 - (self.beta_par ** 2) - (self.beta_ort) ** 2) ** (1 / 2)
         photo = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, lamb, 0, 0, 0, 0, 0, 0, self.beta_ort, 0, 0, 0, self.beta_par, 0, 0, 0],
                           [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                          [0, 0, 0, lamb, 0, 0, 0, 0, 0, 0, self.beta_ort, 0, 0, 0, self.beta_par, 0],
                           [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                          [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, lamb, 0, 0, -self.beta_par, 0, 0, 0, self.beta_ort, 0, 0, 0],
                           [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-                          [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, lamb, 0, 0, -self.beta_par, 0, 0, 0, self.beta_ort, 0],
+                          [0, -self.beta_ort, 0, 0, 0, self.beta_par, 0, 0, lamb, 0, 0, 0, 0, 0, 0, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-                          [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, -self.beta_ort, 0, 0, 0, self.beta_par, 0, 0, lamb, 0, 0, 0, 0, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                          [0, -self.beta_par, 0, 0, 0, -self.beta_ort, 0, 0, 0, 0, 0, 0, lamb, 0, 0, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, -self.beta_par, 0, 0, 0, -self.beta_ort, 0, 0, 0, 0, 0, 0, lamb, 0],
                           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
 
         return photo
 
     def _circuit_diagram_info_(self, args):
         return "Decaying", "Late-Photon"
+
+
+
+class QuditCZPhoton(cirq.TwoQubitGate):
+    # beta to be 1 in ideal case
+    def __init__(self):
+        super(QuditCZPhoton, self)
+
+    def _qid_shape_(self):
+        return (4,4)
+    def _unitary_(self):
+
+        CZ = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
+
+        return CZ
+
+    def _circuit_diagram_info_(self, args):
+        return "Control", "Target"
 
 class QuditPiHalfGate(cirq.SingleQubitGate):
     # delta to be 0 in ideal case
@@ -149,21 +183,174 @@ class QuditDepGate(cirq.SingleQubitGate):
     def _circuit_diagram_info_(self, args):
         return 'Dephasing'
 
+class QuditXRotGate(cirq.SingleQubitGate):
+
+    def __init__(self):
+        super(QuditXRotGate, self)
+
+    def _qid_shape_(self):
+        return (4,)
+
+    def _unitary_(self):
+        rot_matrix = np.array([[1, -1j, 0, 0],
+                               [-1j, 1, 0, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1],
+                               ]) * 1/(2 ** (1 / 2))
+
+        return rot_matrix
+
+    def _circuit_diagram_info_(self, args):
+        return 'XRot'
+
+class QuditXPhRotGate(cirq.SingleQubitGate):
+
+    def __init__(self):
+        super(QuditXPhRotGate, self)
+
+    def _qid_shape_(self):
+        return (4,)
+
+    def _unitary_(self):
+        rot_matrix = np.array([[1, 0, 0, 0],
+                               [0, 1, -1j, 0],
+                               [0, -1j, 1, 0],
+                               [0, 0, 0, 1],
+                               ]) * 1/(2 ** (1 / 2))
+
+        return rot_matrix
+
+    def _circuit_diagram_info_(self, args):
+        return 'XPhRot'
+
+class QuditZRotGate(cirq.SingleQubitGate):
+    #delta0 to be 0 in ideal case ---> Which I guess is actually the inverse to having large detuning
+    def __init__(self):
+        super(QuditZRotGate, self)
+
+    def _qid_shape_(self):
+        return (4,)
+
+    def _unitary_(self):
+        rot_matrix = np.array([[1 + 1j, 0, 0, 0],
+                               [0, 1 - 1j, 0, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1],
+                               ]) * 1/(2 ** (1 / 2)) / (1j)**(1/2)
+
+        return rot_matrix
+
+    def _circuit_diagram_info_(self, args):
+        return 'ZRot'
+
+class QuditZPhRotGate(cirq.SingleQubitGate):
+    def __init__(self):
+        super(QuditZPhRotGate, self)
+
+    def _qid_shape_(self):
+        return (4,)
+
+    def _unitary_(self):
+        rot_matrix = np.array([[1, 0, 0, 0],
+                               [0, 1 + 1j, 0, 0],
+                               [0, 0, 1 - 1j, 0],
+                               [0, 0, 0, 1],
+                               ]) * 1/(2 ** (1 / 2))
+
+        return rot_matrix
+
+    def _circuit_diagram_info_(self, args):
+        return 'ZPhRot'
+
+class QuditHPhGate(cirq.SingleQubitGate):
+    def __init__(self):
+        super(QuditHPhGate, self)
+
+    def _qid_shape_(self):
+        return (4,)
+
+    def _unitary_(self):
+        H_matrix = np.array([[1, 0, 0, 0],
+                               [0, 1/(2 ** (1 / 2)), 1/(2 ** (1 / 2)), 0],
+                               [0, 1/(2 ** (1 / 2)), -1/(2 ** (1 / 2)), 0],
+                               [0, 0, 0, 1],
+                               ])
+
+        return H_matrix
+
+    def _circuit_diagram_info_(self, args):
+        return 'HPhoton'
+
 if __name__ == "__main__":
-    this_gate0 = QuditEarlyPhoton(1)
-    this_gate1 = QuditPiHalfGate(0)
-    this_gate2 = QuditExcGate(0)
-    this_gate3 = QuditPiGate(0)
-    this_gate4 = QuditLatePhoton(0)
-    this_gate5 = QuditDepGate(np.pi/4)
+
+    this_gate0 = QuditEarlyPhoton(0.98, 0.02)
+    this_gate1 = QuditPiHalfGate(0.05)
+    this_gate2 = QuditExcGate(0.05)
+    this_gate3 = QuditPiGate(0.05)
+    this_gate4 = QuditLatePhoton(0.98, 0.02)
+    this_gate5 = QuditDepGate(np.pi/12)
+    this_gate6 = QuditXRotGate()
+    this_gate7 = QuditZRotGate()
+    this_gate8 = QuditHPhGate()
+    this_gate9 = QuditZPhRotGate()
+    #this_gate10 = QuditCorThreeGate()
+    this_gate11 = QuditCZPhoton()
+    #this_gate12 = QuditCorTwoGate()
     q0 = cirq.LineQid(0, dimension=4)
     q1 = cirq.LineQid(1, dimension=4)
     q2 = cirq.LineQid(2, dimension=4)
-    circuit = cirq.Circuit(
-        this_gate1.on(q0), this_gate5.on(q0), this_gate2.on(q0), this_gate0.on(q0, q1),  this_gate3.on(q0), this_gate2.on(q0),
-        this_gate4.on(q0, q1), this_gate2.on(q0), this_gate0.on(q0, q2), this_gate3.on(q0), this_gate2.on(q0),
-        this_gate4.on(q0, q2)
+    q3 = cirq.LineQid(3, dimension=4)
+    ### three qubit example including two local complementation operations ###
+    circuit = cirq.Circuit(this_gate1.on(q0), this_gate2.on(q0), this_gate0.on(q0, q1), this_gate3.on(q0),
+            this_gate2.on(q0), this_gate4.on(q0, q1), this_gate3.on(q0), this_gate8.on(q1),
+                           this_gate2.on(q0), this_gate0.on(q0, q2), this_gate3.on(q0),
+                           this_gate2.on(q0), this_gate4.on(q0, q2), this_gate3.on(q0), this_gate8.on(q2),
+                           this_gate6.on(q0), this_gate9.on(q1), this_gate9.on(q2),
+                           this_gate2.on(q0), this_gate0.on(q0, q3), this_gate3.on(q0),
+                           this_gate2.on(q0), this_gate4.on(q0, q3), this_gate3.on(q0), this_gate8.on(q3),
+                           this_gate6.on(q0), this_gate9.on(q1), this_gate9.on(q2), this_gate9.on(q3),
+                           this_gate5.on(q0)
+                           )
+    result0 = cirq.Simulator().simulate(circuit).final_state_vector
 
-    )
-    print(circuit)
-    print(cirq.Simulator().simulate(circuit).final_state_vector)
+    this_gate0 = QuditEarlyPhoton(1, 0)
+    this_gate1 = QuditPiHalfGate(0)
+    this_gate2 = QuditExcGate(0)
+    this_gate3 = QuditPiGate(0)
+    this_gate4 = QuditLatePhoton(1, 0)
+
+    circuit = cirq.Circuit(this_gate1.on(q0), this_gate2.on(q0), this_gate0.on(q0, q1), this_gate3.on(q0),
+                           this_gate2.on(q0), this_gate4.on(q0, q1), this_gate3.on(q0), this_gate8.on(q1),
+                           this_gate2.on(q0), this_gate0.on(q0, q2), this_gate3.on(q0),
+                           this_gate2.on(q0), this_gate4.on(q0, q2), this_gate3.on(q0), this_gate8.on(q2),
+                           this_gate2.on(q0), this_gate0.on(q0, q3), this_gate3.on(q0),
+                           this_gate2.on(q0), this_gate4.on(q0, q3), this_gate3.on(q0), this_gate8.on(q3),
+                           this_gate11.on(q1, q3), this_gate11.on(q2, q3)
+                           )
+    result1 = cirq.Simulator().simulate(circuit).final_state_vector
+    overlap = np.dot(result0, result1)
+    overlap_abs = abs(overlap) ** 2
+    print(overlap_abs)
+
+    ### Two qubit example including one local complementation ###
+
+    circuit = cirq.Circuit(this_gate1.on(q0), this_gate2.on(q0), this_gate0.on(q0, q1), this_gate3.on(q0),
+                           this_gate2.on(q0), this_gate4.on(q0, q1), this_gate3.on(q0), this_gate8.on(q1),
+                           this_gate2.on(q0), this_gate0.on(q0, q2), this_gate3.on(q0),
+                           this_gate2.on(q0), this_gate4.on(q0, q2), this_gate3.on(q0), this_gate8.on(q2),
+                           this_gate6.on(q0), this_gate9.on(q1), this_gate9.on(q2),
+                           this_gate5.on(q0)
+                           )
+
+    result0 = cirq.Simulator().simulate(circuit).final_state_vector
+
+    circuit = cirq.Circuit(this_gate1.on(q0), this_gate2.on(q0), this_gate0.on(q0, q1), this_gate3.on(q0),
+                           this_gate2.on(q0), this_gate4.on(q0, q1), this_gate3.on(q0), this_gate8.on(q1),
+                           this_gate2.on(q0), this_gate0.on(q0, q2), this_gate3.on(q0),
+                           this_gate2.on(q0), this_gate4.on(q0, q2), this_gate3.on(q0), this_gate8.on(q2),
+                           this_gate11.on(q1, q2)
+                           )
+    result1 = cirq.Simulator().simulate(circuit).final_state_vector
+    overlap = np.dot(result0, result1)
+    overlap_abs = abs(overlap) ** 2
+    print(overlap_abs)
