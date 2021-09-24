@@ -188,8 +188,9 @@ class QuditDepGate(cirq.SingleQubitGate):
 
 class QuditXRotGate(cirq.SingleQubitGate):
 
-    def __init__(self):
+    def __init__(self, delta):
         super(QuditXRotGate, self)
+	self.delta = delta
 
     def _qid_shape_(self):
         return (4,)
@@ -201,8 +202,13 @@ class QuditXRotGate(cirq.SingleQubitGate):
                                [0, 0, 1, 0],
                                [0, 0, 0, 1],
                                ])
+	rot_matrix_noise = np.array([[np.cos((1 + self.delta) * np.pi / 4), -1j * np.sin((1 + self.delta) * np.pi / 4), 0, 0],
+                               [-1j * np.sin((1 + self.delta) * np.pi / 4), np.cos((1 + self.delta) * np.pi / 4), 0, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1],
+                               ])
 
-        return rot_matrix
+        return rot_matrix_noise
 
     def _circuit_diagram_info_(self, args):
         return 'XRot'
@@ -230,8 +236,9 @@ class QuditXPhRotGate(cirq.SingleQubitGate):
 
 class QuditZRotGate(cirq.SingleQubitGate):
     
-    def __init__(self):
+    def __init__(self, delta):
         super(QuditZRotGate, self)
+	self.delta = delta
 
     def _qid_shape_(self):
         return (4,)
@@ -243,8 +250,13 @@ class QuditZRotGate(cirq.SingleQubitGate):
                                [0, 0, 1, 0],
                                [0, 0, 0, 1],
                                ])
+	rot_matrix_noise = np.array([[(1 + 1j) * square_root * np.cos(np.pi / 2 * self.delta), (1 - 1j) * square_root * np.sin(np.pi / 2 * self.delta), 0, 0],
+                               [-(1 + 1j) * square_root * np.sin(np.pi / 2 * self.delta), (1 - 1j) * square_root * np.cos(np.pi / 2 * self.delta), 0, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1],
+                               ])
 
-        return rot_matrix
+        return rot_matrix_noise
 
     def _circuit_diagram_info_(self, args):
         return 'ZRot'
