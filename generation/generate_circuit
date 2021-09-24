@@ -2,9 +2,12 @@ import networkx as nx
 import numpy as np
 import json
 from lc_equivalence import check_LCequiv
-
 import cirq
 from cirq.ops import CZ, H, S, Z, I, X
+
+### NOTES ###
+# Sometimes produces ismorphic states.. hence not equal vectors..
+# Different global phases depending on number of neighbours
 
 def counter(graph_number):
     """ Function to find the LC-sequence of given graph down to graph with id:0 in given LC-class"""
@@ -32,10 +35,15 @@ def counter(graph_number):
                         source_list["graph"].append(graphs["edges"])
                         running = True
                         while running == True:
-                            if 0 in source_list["source"]:
+                            #if 0 in source_list["source"]:
+                            if idx == 0:
+                                source_list["target"].append(0)
+                                source_list["source"].append(0)
+                                source_list["equivs"].append(0)
                                 running = False
                             else:
                                 source_search = source(classes["links"], idx)
+                                #print(classes["links"])
                                 source_list["target"].append(source_search[0][0])
                                 source_list["source"].append(source_search[1][0])
                                 source_list["equivs"].append(source_search[2][0])
@@ -61,8 +69,8 @@ def track_LC_seq(link_list, idx, class_tracker, key):
             source_list["target"].append(source_search[0][0])
             source_list["source"].append(source_search[1][0])
             source_list["equivs"].append(source_search[2][0])
-
             idx = source_search[1][0]
+
     return source_list
 
 def source(link_list, idx):
@@ -72,7 +80,7 @@ def source(link_list, idx):
     equiv_list = []
     for targets in link_list:
         if targets["target"] == idx:
-            if targets["source"] == 0:
+            if targets["source"] == 0: #What did I do here? if and else do the same thing.....
                 target_list.append(targets["target"])
                 source_list.append(targets["source"])
                 equiv_list.append(targets["equivs"][0][0])
@@ -111,7 +119,7 @@ def second_search(the_dict, the_key, graph):
                 if np.array_equal(adjMat, new_adjMat):
                     the_id = graphs["id"]
                     if the_id == 0:
-                        sequence = {"key": str(int(the_key) - 1), "class": class_tracker, "target": 0, "source": 0, "equivs": [0]}
+                        sequence = {"key": str(int(the_key) - 1), "class": class_tracker, "target": [0], "source": [0], "equivs": [0]}
                         return sequence
                     else:
 
@@ -124,15 +132,38 @@ def second_search(the_dict, the_key, graph):
 
 def local_complement(target, neigh):
     """ Function to perform LC in the circuit given the target and its neighbours"""
-    circuit.append([H(target), S(target), H(target)])
-    for neighbour in neigh:
-        circuit.append([S(neighbour), Z(neighbour)])
+    '''
+    my_gate = MyGate()
+    my_Z_gate = Z_gate()
+    my_G_gate = G_gate()
+    if len(neigh) == 2:
+        circuit.append([cirq.rx(np.pi / 2)(target)])
+        circuit.append([my_gate.on(target)])
+    elif len(neigh) == 3:
+        circuit.append([cirq.rx(np.pi / 2)(target)])
+        circuit.append([my_Z_gate.on(target)])
+    elif len(neigh) == 4:
+        circuit.append([cirq.rx(np.pi / 2)(target)])
+        circuit.append([my_gate.on(target)])
+        circuit.append([my_Z_gate.on(target)])
 
+    elif len(neigh) == 5:
+        circuit.append([cirq.rx(np.pi / 2)(target)])
+        circuit.append([my_G_gate.on(target)])
+    elif len(neigh) == 6:
+        circuit.append([cirq.rx(np.pi / 2)(target)])
+        circuit.append([my_gate.on(target)])
+        circuit.append([my_G_gate.on(target)])
+    '''
+    circuit.append([cirq.rx(np.pi / 2)(target)])
+    for neighbour in neigh:
+        circuit.append([cirq.rz(-np.pi/2)(neighbour)])
+    
 def print_circuit():
     """ Function that creates the circuit that builds the graph state from scratch"""
     q = cirq.LineQubit.range(int(key_list[0]) + 1)
     circuit.append([H(qubit) for qubit in q])
-    if len(iter_dict["2"][0]) == 3:
+    if iter_dict["2"][0] == 3:
         circuit.append([CZ(q[0], q[1]), CZ(q[0], q[2]), CZ(q[1], q[2])])
     else:
         circuit.append([CZ(q[0], q[1]), CZ(q[0], q[2])])
@@ -140,23 +171,28 @@ def print_circuit():
         if int(i) == 2:
             continue
         else:
-            if iter_dict[i]["target"] == 0 and iter_dict[i]["source"] == 0:
+
+            if iter_dict[i]["target"][0] == 0 and iter_dict[i]["source"][0] == 0:
                 circuit.append([CZ(q[0], q[int(i)])])
+
             else:
+
                 circuit.append([CZ(q[0], q[int(i)])])
                 the_class = iter_dict[i]["class"]
                 length = [n for n in range(len(iter_dict[i]["equivs"]))]
                 for j in reversed(length):
-                    LC_node = iter_dict[i]["source"][j]
-                    edge_final = the_dict[i][the_class]["nodes"][LC_node]["edges"]
-                    graph_final = get_graph(edge_final)
-                    target = iter_dict[i]["equivs"][j]
-                    neigbours = [n for n in graph_final.neighbors(target)]
-                    local_complement(q[target], [q[i] for i in neigbours])
-
-    print(circuit)
+                    if iter_dict[i]["target"][j] == 0 and iter_dict[i]["source"][j] == 0:
+                        print("found one")
+                    else:
+                        LC_node = iter_dict[i]["source"][j]
+                        edge_final = the_dict[i][the_class]["nodes"][LC_node]["edges"]
+                        graph_final = get_graph(edge_final)
+                        target = iter_dict[i]["equivs"][j]
+                        neigbours = [n for n in graph_final.neighbors(target)]
+                        local_complement(q[target], [q[i] for i in neigbours])
+    
     result = cirq.Simulator().simulate(circuit).final_state_vector
-    print(result)
+    return result
 
 def sanity_check(iter_dict):
     """ Function for sanity check if the circuit including the LC-ops actually produces the
@@ -164,10 +200,13 @@ def sanity_check(iter_dict):
     circuit_2 = cirq.Circuit()
     q = cirq.LineQubit.range(int(key_list[0]) + 1)
     circuit_2.append([H(qubit) for qubit in q])
-    for edge in iter_dict[key_list[0]]["graph"][0]:
+
+    for edge in iter_dict[key_list[0]]["graph"][1]:
         circuit_2.append([CZ(q[edge[0]], q[edge[1]])])
-    result = cirq.Simulator().simulate(circuit_2).final_state_vector
-    print(result)
+
+    result2 = cirq.Simulator().simulate(circuit_2).final_state_vector
+    print(circuit_2)
+    return result2
 
 def generation(graph_numb):
     """ Main function called for the generation, includes most else functions"""
@@ -181,27 +220,27 @@ def generation(graph_numb):
     iter_dict = {}
     iter_dict[str(the_key)] = outcome
 
-    while int(the_key) > 2:
+    while int(the_key) > 3:
         new_dict = second_search(the_dict, the_key, graph)
         the_key = str(new_dict["key"])
         the_class = int(new_dict["class"])
         iter_dict[str(the_key)] = new_dict
-        id0 = the_dict[the_key][the_class - 1]["nodes"][0]
+        id0 = the_dict[the_key][the_class]["nodes"][0]
         edges = id0["edges"]
         graph = get_graph(edges)
         graph.remove_node(int(the_key))
-    edge_final = the_dict["3"][1]["nodes"][0]["edges"]
+
+    edge_final = the_dict["3"][the_class]["nodes"][0]["edges"]
     graph_final = get_graph(edge_final)
     graph_final.remove_node(3)
     iter_dict["2"] = []
-    if graph_final.number_of_edges == 2:
-        iter_dict["2"].append(the_dict["2"][0]["nodes"][0]["edges"])
-    else:
-        iter_dict["2"].append(the_dict["2"][0]["nodes"][1]["edges"])
 
-    key_list = []
-    for key in iter_dict:
-        key_list.append(key)
+    if graph_final.number_of_edges() == 3:
+        iter_dict["2"].append(3)
+        
+    elif graph_final.number_of_edges() == 2:
+        iter_dict["2"].append(2)
+        
 
     return iter_dict
 
@@ -211,14 +250,15 @@ if __name__ == "__main__":
     f = open(path)
     the_dict = json.load(f)
     # Generate the LC-sequence
-    iter_dict = generation(50)
+    iter_dict = generation(120)
     key_list = []
-
     for key in iter_dict:
         key_list.append(key)
 
     # Build and print the circuit
     circuit = cirq.Circuit()
-    result0 = print_circuit()
+    result0 = (print_circuit())
+    print(result0)
     result1 = sanity_check(iter_dict)
+    print(result1)
     print(np.array_equal(result0, result1))
