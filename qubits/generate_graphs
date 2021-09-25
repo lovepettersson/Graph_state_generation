@@ -1,0 +1,134 @@
+import sys
+import itertools as it
+import numpy as np
+import json
+sys.path.append("/home/lovepettersson/gsc")
+import networkx as nx
+# Import local modules
+from gsc.explore_lc_orbit import explore_lc_orbit, export_class_graph
+from gsc.is_lc_equiv import are_lc_equiv
+
+def get_graph(edges):
+	# Creates a simple graph given edges, not concerend about the fill LC-class
+	graph = nx.Graph()
+	graph.add_edges_from(edges)
+	return graph
+
+
+def new_check_LC_equiv(input_class, input_graph):
+	edges_one = input_class[0].edges
+	edges_two = input_graph.edges
+	graph_one = get_graph(edges_one)
+	graph_two = get_graph(edges_two)
+	is_equiv, local_us = are_lc_equiv(graph_one, graph_two)
+	return is_equiv
+
+
+def copy_graph(graph):
+	""" Returns copy of graph including graph attributes """
+	graph_copy = graph.copy()
+	attrs = set(dir(graph))
+	attrs_copy = set(dir(graph_copy))
+	for attr in attrs - attrs_copy:
+		graph_copy.__dict__[attr] = graph.__dict__[attr]
+    	return graph_copy
+
+def local_complementation(graph, node):
+	""" Returns the graph for local complementation applied to node """
+	neighs = graph.neighbors(node)
+	neigh_k_edges = it.combinations(neighs, 2)
+	lc_graph = copy_graph(graph)
+    	for u, v in neigh_k_edges:
+        	if lc_graph.has_edge(u, v):
+            		lc_graph.remove_edge(u, v)
+        	else:
+            		lc_graph.add_edge(u, v, weight=1)
+    	return lc_graph
+
+def arreq_in_list(myarr, list_arrays):
+	return next((True for elem in list_arrays if np.array_equal(elem, myarr)), False)
+
+
+def lc_equivalence_class_full(G):
+	lc_class = [G]
+	adj_mat_list = [nx.adjacency_matrix(G).todense()]
+	nodes = G.nodes
+	num_nodes = len(nodes)
+	streak_num = 0
+	this_lc_node = 0
+	while streak_num < num_nodes:
+		this_lc_node = this_lc_node % num_nodes
+		for this_graph in lc_class:
+			new_graph = local_complementation(this_graph, this_lc_node)
+			new_adjMat = nx.adjacency_matrix(new_graph).todense()
+			if not arreq_in_list(new_adjMat, adj_mat_list):
+				lc_class.append(new_graph)
+				adj_mat_list.append(new_adjMat)
+				streak_num = 0
+		this_lc_node += 1
+		streak_num += 1
+	return lc_class
+
+
+def gen_graphs(num_qubits):
+	""" Function for generating the set of graphs we can produce up to num_qubits"""
+	for n in range(2, num_qubits):
+		print("Starting process for " + str(n) + " number of qubits!")
+		i = 0 # Counter to keep track of how many classes has been created for number n
+		storing_classes[str(n)] = []
+		class_before = storing_classes[str(n-1)] # Get list of classes, loop through
+		if n-1 == 1:
+			for graphs in class_before:
+				edges = list(graphs.edges)
+				print(edges)	
+				edges.append((0, n))
+				new_graph = get_graph(edges)
+				data = lc_equivalence_class_full(new_graph)
+				storing_classes[str(n)].append(data)
+		else:
+			
+			for classes in class_before:	
+				for graphs in classes: 
+					edges = list(graphs.edges)
+					edges.append((0, n))
+					new_graph = get_graph(edges) 
+					if i == 0:
+						data = lc_equivalence_class_full(new_graph)
+						storing_classes[str(n)].append(data)
+					if i != 0:
+						tracker = 0
+						for check in storing_classes[str(n)]:
+							if new_check_LC_equiv(check, new_graph) == True:
+								break 
+							else:	
+								tracker += 1 
+								continue
+						if tracker == len(storing_classes[str(n)]):
+							data = lc_equivalence_class_full(new_graph)
+							storing_classes[str(n)].append(data)
+					i += 1
+			
+			
+if __name__ == '__main__':
+
+	edges = [(0, 1)]
+	ini_graph = get_graph(edges)
+	first_class = lc_equivalence_class_full(ini_graph)
+	storing_classes = {"1": first_class}
+	gen_graphs(4)
+
+	all_classes = {}
+	for key in storing_classes:
+		all_classes[key] = []
+		if key == "1":
+			all_classes["1"].append(list(storing_classes["1"][0].edges))
+			continue
+		else:
+			for classes in storing_classes[key]:	
+				for graph in classes:
+					all_classes[key].append(list(graph.edges)) 
+				
+	with open('data_new_complement_qubits.json', 'w') as fp:
+		json.dump(all_classes, fp)
+			
+		
