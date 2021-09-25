@@ -3,7 +3,7 @@ import cirq
 import json
 import matplotlib.pyplot as plt
 
-from generation.generate_circuit import generation, get_graph
+from qubits.generate_circuit import generation, get_graph
 from gates import QuditDepGate, QuditLatePhoton, QuditEarlyPhoton, QuditExcGate, QuditPiHalfGate, QuditPiGate, QuditXRotGate, QuditZRotGate, QuditZPhRotGate, QuditXPhRotGate, QuditHPhGate, QuditCZPhoton
 
 
