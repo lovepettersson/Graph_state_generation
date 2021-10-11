@@ -1,3 +1,6 @@
+import numpy as np
+from ode_solver import gen_rot
+
 X_half_matrix = np.array([[1 / np.sqrt(2), -1j/np.sqrt(2), 0, 0],
                                [-1j/np.sqrt(2), 1 / np.sqrt(2), 0, 0],
                                [0, 0, 1, 0],
