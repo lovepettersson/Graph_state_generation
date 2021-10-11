@@ -1,0 +1,131 @@
+X_half_matrix = np.array([[1 / np.sqrt(2), -1j/np.sqrt(2), 0, 0],
+                               [-1j/np.sqrt(2), 1 / np.sqrt(2), 0, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1],
+                               ])
+X_full_matrix = np.array([[0, 1, 0, 0],
+                               [1, 0, 0, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1],
+                               ])
+class QuditEarlySPhoton():
+    # beta to be 1 in ideal case
+    def __init__(self, beta_par, beta_ort):
+        super(QuditEarlySPhoton, self)
+        self.beta_par = beta_par
+        self.beta_ort = beta_ort
+
+    def unitary(self):
+        lamb = (1 - (self.beta_par ** 2) - (self.beta_ort) ** 2) ** (1 / 2)
+        photo = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, lamb, 0, 0, 0, 0, 0, self.beta_ort, 0, 0, 0, -self.beta_par, 0, 0, 0],
+                          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, lamb, 0, self.beta_par, 0, 0, 0, self.beta_ort, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, -self.beta_ort, 0, 0, 0, self.beta_par, 0, lamb, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                          [0, 0, -self.beta_par, 0, 0, 0, -self.beta_ort, 0, 0, 0, 0, 0, lamb, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
+        return photo
+
+class QuditLateSPhoton():
+    # beta to be 1 in ideal case
+    def __init__(self, beta_par, beta_ort):
+        super(QuditLateSPhoton, self)
+        self.beta_par = beta_par
+        self.beta_ort = beta_ort
+
+    def unitary(self):
+
+        lamb = (1 - (self.beta_par ** 2) - (self.beta_ort) ** 2) ** (1 / 2)
+        photo = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, lamb, 0, 0, 0, 0, 0, 0, self.beta_ort, 0, 0, 0, self.beta_par, 0, 0, 0],
+                          [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, lamb, 0, 0, 0, 0, 0, 0, self.beta_ort, 0, 0, 0, self.beta_par, 0],
+                          [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, lamb, 0, 0, -self.beta_par, 0, 0, 0, self.beta_ort, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, lamb, 0, 0, -self.beta_par, 0, 0, 0, self.beta_ort, 0],
+                          [0, -self.beta_ort, 0, 0, 0, self.beta_par, 0, 0, lamb, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, -self.beta_ort, 0, 0, 0, self.beta_par, 0, 0, lamb, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                          [0, -self.beta_par, 0, 0, 0, -self.beta_ort, 0, 0, 0, 0, 0, 0, lamb, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                          [0, 0, 0, -self.beta_par, 0, 0, 0, -self.beta_ort, 0, 0, 0, 0, 0, 0, lamb, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]])
+
+        return photo
+
+
+def switch(new_state_switch, numb_sites):
+    """ Basis change. Get new vector as well as new index"""
+    new_state_idx = []
+    splitter = 4 ** numb_sites
+    length = int(len(new_state_switch) / splitter)
+    for i in range(length):
+        flip = np.array(np.arange(i * splitter, i * splitter + splitter, 1))
+        four_by_four = []
+        for j in range(4):
+            four_by_four.append([flip[j * int(splitter/4): j * int(splitter/4) + int(splitter/4)]])
+        four_by_four = np.asarray(four_by_four)
+        four_by_four = four_by_four.transpose()
+        flipped = np.reshape(four_by_four, splitter)
+        flipped = list(flipped)
+        for id in flipped:
+            new_state_idx.append(id)
+        
+    new_state1 = np.asarray(new_state1)
+    new_state = switch_state(new_state_switch, new_state1)
+    return new_state_idx, new_state
+
+def switch_state(state, v):
+    new_state = []
+    for i in range(len(state)):
+        new_state.append(state[v[i]])
+    new_state = np.asarray(new_state)
+    return new_state
+
+def switch_density(density_matrix, new_v_state, new_u_state, size):
+    """ Basis change for the density matrix"""
+    new_density_matrix = np.zeros((size, size), dtype=np.complex128)
+    for row in range(len(density_matrix[0])):
+        for column in range(len(density_matrix[0])):
+            new_density_matrix[row][column] = density_matrix[new_u_state[row]][new_v_state[column]]
+    return new_density_matrix
+
+
+def x_rot_full_faulty_density(density_matrix_in, numb_qubits, angle, photon):
+    save = []
+    factor = (numb_qubits-1)
+    #density_matrix = density_matrix_in
+    density_matrix = np.zeros((4 ** numb_qubits, 4 ** numb_qubits), dtype = np.complex128)
+    # 4 to the power of photons times 2 for spin state 0 and 1
+    for i in range((4 ** factor)):
+        for j in range((4 ** factor)):
+            save.append([i, j])
+    for target in save:
+        row, column = target
+        if density_matrix_in[row][column] != 0 or density_matrix_in[row][column + (4 ** factor)] != 0 or density_matrix_in[row + (4 ** factor)][column] != 0 or density_matrix_in[row + (4 ** factor)][column + (4 ** factor)] != 0:
+            y0 = np.array([density_matrix_in[row][column], density_matrix_in[row][column + (4 ** factor)], density_matrix_in[row + (4 ** factor)][column],
+                               density_matrix_in[row + (4 ** factor)][column + (4 ** factor)]], dtype=np.complex128)
+            pi_rot = gen_rot(angle, y0)
+
+            if photon == "early":
+                density_matrix[row][column] = pi_rot[1][0][0]
+                density_matrix[row][column + (4 ** factor)] = pi_rot[1][0][1]
+                density_matrix[row + (4 ** factor)][column] = pi_rot[1][1][0]
+                density_matrix[row + (4 ** factor)][column + (4 ** factor)] = pi_rot[1][1][1]
+            elif photon == "late": # This if statement should be removed, just to lazy..
+                density_matrix[row][column] = pi_rot[1][0][0]
+                density_matrix[row][column + (4 ** factor)] = pi_rot[1][0][1]
+                density_matrix[row + (4 ** factor)][column] = pi_rot[1][1][0]
+                density_matrix[row + (4 ** factor)][column + (4 ** factor)] = pi_rot[1][1][1]
+    return density_matrix
