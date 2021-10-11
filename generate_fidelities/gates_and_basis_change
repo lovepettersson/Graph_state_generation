@@ -110,7 +110,6 @@ def x_rot_full_faulty_density(density_matrix_in, numb_qubits, angle, photon):
     factor = (numb_qubits-1)
     #density_matrix = density_matrix_in
     density_matrix = np.zeros((4 ** numb_qubits, 4 ** numb_qubits), dtype = np.complex128)
-    # 4 to the power of photons times 2 for spin state 0 and 1
     for i in range((4 ** factor)):
         for j in range((4 ** factor)):
             save.append([i, j])
