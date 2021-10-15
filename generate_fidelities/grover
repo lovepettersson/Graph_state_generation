@@ -1,0 +1,243 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from generate_error_inflicted_graphs import photo_gen, basis_change, LC_photon, LC_density, photo_gen_ideal
+from gates_and_basis_change import switch
+
+def photon_rotations():
+    square_root = 1 / (2 ** (1 / 2))
+    rot_matrix = np.array([[1, 0, 0, 0],
+                           [0, (1 + 1j) * square_root, 0, 0],
+                           [0, 0, (1 - 1j) * square_root, 0],
+                           [0, 0, 0, 1],
+                           ])
+    identity = np.array([[1, 0, 0, 0],
+                         [0, 1, 0, 0],
+                         [0, 0, 1, 0],
+                         [0, 0, 0, 1]], dtype=np.complex128)
+    Z_rot_gate_1 = np.kron(np.kron(np.kron(identity, rot_matrix), identity), identity)
+    Z_rot_gate_2 = np.kron(np.kron(np.kron(identity, identity), rot_matrix), identity)
+    Z_rot_gate_3 = np.kron(np.kron(np.kron(identity, identity), identity), rot_matrix)
+
+    rot_matrix = np.array([[1, 0, 0, 0],
+                           [0, 1 * square_root, -1j * square_root, 0],
+                           [0, -1j * square_root, 1 * square_root, 0],
+                           [0, 0, 0, 1],
+                           ])
+    X_rot_gate_1 = np.kron(np.kron(np.kron(identity, rot_matrix), identity), identity)
+
+    rot_matrix = np.array([[(1 + 1j) * square_root, 0, 0, 0],
+                           [0, (1 - 1j) * square_root, 0, 0],
+                           [0, 0, 1, 0],
+                           [0, 0, 0, 1],
+                           ])
+    Z_rot_spin = np.kron(np.kron(np.kron(rot_matrix, identity), identity), identity)
+
+    return Z_rot_gate_1, Z_rot_gate_2, Z_rot_gate_3, X_rot_gate_1, Z_rot_spin
+
+def generate_box(numb_photons):
+    ex, early_gate, late_gate, density_matrix, basis, H_gate_photon_1, H_gate_photon_2, H_gate_photon_3 = gates_state(
+        numb_photons, 0.992, 0.072, 1.7 * 10 ** (-2), density=True)
+    Z_rot_gate_1, Z_rot_gate_2, Z_rot_gate_3, X_rot_gate_1, Z_rot_spin = photon_rotations()
+
+    ### GENERATE TWO PHOTONS
+    density_matrix = photo_gen(density_matrix, numb_photons, ex, early_gate, late_gate)
+    density_matrix = np.matmul(np.matmul(H_gate_photon_1.transpose(), density_matrix), H_gate_photon_1)
+    density_matrix = basis_change(density_matrix, basis[0], numb_photons, ex, early_gate, late_gate)
+    density_matrix = photo_gen(density_matrix, numb_photons, ex, early_gate, late_gate)
+    density_matrix = np.matmul(np.matmul(H_gate_photon_1.transpose(), density_matrix), H_gate_photon_1)
+
+    ### DO FIRST LOCAL COMPLEMENTATION ON SPIN
+    density_matrix = basis_change(density_matrix, basis[0], numb_photons, ex, early_gate, late_gate)
+    density_matrix = basis_change(density_matrix, basis[0], numb_photons, ex, early_gate, late_gate)
+    density_matrix = LC_density(density_matrix, numb_photons)
+    density_matrix = np.matmul(np.matmul(Z_rot_gate_1, density_matrix), np.conjugate(Z_rot_gate_1.transpose()))
+    density_matrix = np.matmul(np.matmul(Z_rot_gate_2, density_matrix), np.conjugate(Z_rot_gate_2.transpose()))
+    density_matrix = basis_change(density_matrix, basis[0], numb_photons, ex, early_gate, late_gate)
+    density_matrix = basis_change(density_matrix, basis[0], numb_photons, ex, early_gate, late_gate)
+
+    ### GENERATE LAST PHOTON
+    density_matrix = photo_gen(density_matrix, numb_photons, ex, early_gate, late_gate)
+    density_matrix = np.matmul(np.matmul(H_gate_photon_1.transpose(), density_matrix), H_gate_photon_1)
+    density_matrix = basis_change(density_matrix, basis[0], numb_photons, ex, early_gate, late_gate)
+
+    ### DO SECOND LOCAL COMPLEMENTATION ON SPIN
+    density_matrix = LC_density(density_matrix, numb_photons)
+    density_matrix = np.matmul(np.matmul(Z_rot_gate_1, density_matrix), np.conjugate(Z_rot_gate_1.transpose()))
+    density_matrix = np.matmul(np.matmul(Z_rot_gate_2, density_matrix), np.conjugate(Z_rot_gate_2.transpose()))
+    density_matrix = np.matmul(np.matmul(Z_rot_gate_3, density_matrix), np.conjugate(Z_rot_gate_3.transpose()))
+
+    ### LAST LC ON PHOTON 1
+    density_matrix = np.matmul(np.matmul(X_rot_gate_1, density_matrix), np.conjugate(X_rot_gate_1.transpose()))
+    density_matrix = np.matmul(np.matmul(Z_rot_gate_3, density_matrix), np.conjugate(Z_rot_gate_3.transpose()))
+    density_matrix = np.matmul(np.matmul(Z_rot_spin, density_matrix), np.conjugate(Z_rot_spin.transpose()))
+
+    return density_matrix
+
+
+def generate_ideal_box(numb_photons):
+    ex, early_gate, late_gate, X_full_perfect, X_half_perfect, state, H_gate_photon_1, H_gate_photon_2, H_gate_photon_3 = gates_state(
+        numb_photons, 1, 0, 0, density=False)
+    Z_rot_gate_1, Z_rot_gate_2, Z_rot_gate_3, X_rot_gate_1, Z_rot_spin = photon_rotations()
+    state = photo_gen_ideal(state, ex, early_gate, late_gate, X_full_perfect)
+    state = np.matmul(H_gate_photon_1, state)
+    v, state = switch(state, numb_photons)
+    state = photo_gen_ideal(state, ex, early_gate, late_gate, X_full_perfect)
+    state = np.matmul(H_gate_photon_1, state)  ## remeber now photon two is at position one..
+    v, state = switch(state, numb_photons)
+    v, state = switch(state, numb_photons)
+    state = LC_photon(state, X_half_perfect)
+
+    state = np.matmul(Z_rot_gate_1, state)
+    state = np.matmul(Z_rot_gate_2, state)
+    v, state = switch(state, numb_photons)
+    v, state = switch(state, numb_photons)
+
+    state = photo_gen_ideal(state, ex, early_gate, late_gate, X_full_perfect)
+    state = np.matmul(H_gate_photon_1, state)
+    v, state = switch(state, numb_photons)
+
+    state = LC_photon(state, X_half_perfect)
+    state = np.matmul(Z_rot_gate_1, state)
+    state = np.matmul(Z_rot_gate_2, state)
+    state = np.matmul(Z_rot_gate_3, state)
+
+    state = np.matmul(X_rot_gate_1, state)
+    state = np.matmul(Z_rot_gate_3, state)
+    state = np.matmul(Z_rot_spin, state)
+
+    return state
+
+
+def measurement(ang1, ang2):
+    # SPIN = qudit_1, PHOTON_1 = qudit_2, etc....
+    qudit_1 = np.array([1 / np.sqrt(2), np.exp(1j * ang1) / np.sqrt(2), 0, 0], dtype=np.complex128)
+    qudit_2 = np.array([0, 1 / np.sqrt(2), np.exp(1j * ang2) / np.sqrt(2), 0], dtype=np.complex128)
+    qudit_1_minus = np.array([1 / np.sqrt(2), -np.exp(1j * ang1) / np.sqrt(2), 0, 0], dtype=np.complex128)
+    qudit_2_minus = np.array([0, 1 / np.sqrt(2), -np.exp(1j * ang2) / np.sqrt(2), 0], dtype=np.complex128)
+    first_list = [qudit_1, qudit_1_minus]
+    
+    qudit_3 = np.array([0, 0, 1, 0], dtype=np.complex128)
+    qudit_4 = np.array([0, 0, 1, 0], dtype=np.complex128)
+    qudit_3_zero = np.array([0, 1, 0, 0], dtype=np.complex128)
+    qudit_4_zero = np.array([0, 1, 0, 0], dtype=np.complex128)
+    
+    Z_H = np.array([[1, 0, 0, 0],
+                    [0, 1 / (2 ** (1 / 2)), 1 / (2 ** (1 / 2)), 0],
+                    [0, -1 / (2 ** (1 / 2)), 1 / (2 ** (1 / 2)), 0],
+                    [0, 0, 0, 1],
+                    ])
+
+    qudit_3 = np.matmul(Z_H, qudit_3)
+    qudit_4 = np.matmul(Z_H, qudit_4)
+    qudit_3_zero = np.matmul(Z_H, qudit_3_zero)
+    qudit_4_zero = np.matmul(Z_H, qudit_4_zero)
+
+    measurement_11 = []
+    measurement_10 = []
+    measurement_01 = []
+    measurement_00 = []
+    i = 0
+
+    for base in first_list: 
+        # for |1>|1> in final measurement
+        if i == 0:
+            # for |+,alpha>|+,beta> and |+,alpha>|-,beta> in first measurement
+            one = np.kron(np.kron(np.kron(base, qudit_2), qudit_3), qudit_4)
+            two = np.kron(np.kron(np.kron(base, qudit_2_minus), qudit_3_zero), qudit_4)
+            measurement_11.append(one)
+            measurement_11.append(two)
+        elif i == 1:
+            # for |-,alpha>|+,beta> and |-,alpha>|-,beta> in first measurement
+            two = np.kron(np.kron(np.kron(base, qudit_2_minus), qudit_3_zero), qudit_4_zero)
+            one = np.kron(np.kron(np.kron(base, qudit_2), qudit_3), qudit_4_zero)
+            measurement_11.append(one)
+            measurement_11.append(two)
+        i += 1
+
+    i = 0
+    for base in first_list:
+        # for |1>|0> in final measurement
+        if i == 0:
+            # for |+,alpha>|+,beta> and |+,alpha>|-,beta> in first measurement
+            one = np.kron(np.kron(np.kron(base, qudit_2), qudit_3), qudit_4_zero)
+            two = np.kron(np.kron(np.kron(base, qudit_2_minus), qudit_3_zero), qudit_4_zero)
+            measurement_10.append(one)
+            measurement_10.append(two)
+        elif i == 1:
+            # for |-,alpha>|+,beta> and |-,alpha>|-,beta> in first measurement
+            one = np.kron(np.kron(np.kron(base, qudit_2), qudit_3_zero), qudit_4_zero)
+            two = np.kron(np.kron(np.kron(base, qudit_2_minus), qudit_3_zero), qudit_4)
+            measurement_10.append(one)
+            measurement_10.append(two)
+        i += 1
+    i = 0
+    for base in first_list:
+        # for |0>|1> in final measurement
+        if i == 0:
+            # for |+,alpha>|+,beta> and |+,alpha>|-,beta> in first measurement
+            one = np.kron(np.kron(np.kron(base, qudit_2), qudit_3_zero), qudit_4)
+            two = np.kron(np.kron(np.kron(base, qudit_2_minus), qudit_3), qudit_4)
+            measurement_01.append(one)
+            measurement_01.append(two)
+        elif i == 1:
+            # for |-,alpha>|+,beta> and |-,alpha>|-,beta> in first measurement
+            one = np.kron(np.kron(np.kron(base, qudit_2), qudit_3_zero), qudit_4_zero)
+            two = np.kron(np.kron(np.kron(base, qudit_2_minus), qudit_3), qudit_4_zero)
+            measurement_01.append(one)
+            measurement_01.append(two)
+        i += 1
+
+    i = 0
+    for base in first_list:
+        # for |1>|1> in final measurement
+        if i == 0:
+            # for |+,alpha>|+,beta> and |+,alpha>|-,beta> in first measurement
+            one = np.kron(np.kron(np.kron(base, qudit_2), qudit_3_zero), qudit_4_zero)
+            two = np.kron(np.kron(np.kron(base, qudit_2_minus), qudit_3), qudit_4_zero)
+            measurement_00.append(one)
+            measurement_00.append(two)
+        elif i == 1:
+            # for |-,alpha>|+,beta> and |-,alpha>|-,beta> in first measurement
+            one = np.kron(np.kron(np.kron(base, qudit_2), qudit_3_zero), qudit_4)
+            two = np.kron(np.kron(np.kron(base, qudit_2_minus), qudit_3), qudit_4)
+            measurement_00.append(one)
+            measurement_00.append(two)
+        i += 1
+
+    return measurement_11, measurement_01, measurement_10, measurement_00
+
+
+if __name__ == "__main__":
+    density_matrix = generate_box(3)
+    basis_states = measurement(0, 0)
+    fid00 = 0
+    fid01 = 0
+    fid10 = 0
+    fid11 = 0
+    for one_one in basis_states[0]:
+        fid = np.matmul(np.matmul(np.conjugate(one_one).transpose(), density_matrix), one_one)
+        fid11 += fid
+        print(fid)
+    for one_one in basis_states[1]:
+        fid = np.matmul(np.matmul(np.conjugate(one_one).transpose(), density_matrix), one_one)
+        fid01 += fid
+    for one_one in basis_states[2]:
+        fid = np.matmul(np.matmul(np.conjugate(one_one).transpose(), density_matrix), one_one)
+        fid10 += fid
+    for one_one in basis_states[3]:
+        fid = np.matmul(np.matmul(np.conjugate(one_one).transpose(), density_matrix), one_one)
+        fid00 += fid
+
+    # print(np.matmul(np.matmul(np.conjugate(basis_states[4]).transpose(), density_matrix), basis_states[4]))
+    x = (abs(fid11), abs(fid01), abs(fid10), abs(fid00))
+    width = (0.4, 0.4, 0.4, 0.4)
+    y = ("|11>", "|01>", "|10>", "|00>")
+    plt.bar(y, x, 0.4, align='center')
+    plt.ylabel('Probability')
+    plt.title(r'$\alpha = 0, \beta = 0$')
+    # plt.legend(['\u03B1 = 0'], ['\u03B2 = 0'])
+
+    plt.show()
+
+
+
