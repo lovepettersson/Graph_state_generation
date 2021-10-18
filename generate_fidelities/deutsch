@@ -5,7 +5,7 @@ from cirq.ops import CZ, H
 import matplotlib.pyplot as plt
 
 
-def measurement():
+def measurement_constant():
    
     qudit_10 = np.array([1, 0, 0, 0], dtype=np.complex128) # qubit 1
     qudit_20 = np.array([0, 0, 1, 0], dtype=np.complex128) # qubit 3
