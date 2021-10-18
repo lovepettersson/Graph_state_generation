@@ -5,22 +5,18 @@ from cirq.ops import CZ, H
 import matplotlib.pyplot as plt
 
 
-def measurement(ang1, ang2):
-    # SPIN = qudit_1, PHOTON_1 = qudit_2, etc....
-    qudit_10 = np.array([1, 0, 0, 0], dtype=np.complex128)
-    qudit_20 = np.array([0, 0, 1, 0], dtype=np.complex128)
-    qudit_30 = np.array([0, 1 / np.sqrt(2), -1 / np.sqrt(2), 0], dtype=np.complex128)
-    qudit_40 = np.array([0, 1 / np.sqrt(2), 1 / np.sqrt(2), 0], dtype=np.complex128)
+def measurement():
+   
+    qudit_10 = np.array([1, 0, 0, 0], dtype=np.complex128) # qubit 1
+    qudit_20 = np.array([0, 0, 1, 0], dtype=np.complex128) # qubit 3
+    qudit_30 = np.array([0, 1 / np.sqrt(2), -1 / np.sqrt(2), 0], dtype=np.complex128) # qubit 4
+    qudit_40 = np.array([0, 1 / np.sqrt(2), 1 / np.sqrt(2), 0], dtype=np.complex128) # qubit 1
 
-    qudit_11 = np.array([0, 1, 0, 0], dtype=np.complex128)
-    qudit_21 = np.array([0, 1, 0, 0], dtype=np.complex128)
-    qudit_31 = np.array([0, 1 / np.sqrt(2), 1 / np.sqrt(2), 0], dtype=np.complex128)
-    qudit_41 = np.array([0, 1 / np.sqrt(2), -1 / np.sqrt(2), 0], dtype=np.complex128)
+    qudit_11 = np.array([0, 1, 0, 0], dtype=np.complex128) # qubit 2
+    qudit_21 = np.array([0, 1, 0, 0], dtype=np.complex128) # qubit 3
+    qudit_31 = np.array([0, 1 / np.sqrt(2), 1 / np.sqrt(2), 0], dtype=np.complex128) # qubit 4
+    qudit_41 = np.array([0, 1 / np.sqrt(2), -1 / np.sqrt(2), 0], dtype=np.complex128) # qubit 1
 
-    #qudit_1 = np.array([1 / np.sqrt(2), 1 / np.sqrt(2)], dtype=np.complex128) ## SPIN
-    #qudit_2 = np.array([1, 0], dtype=np.complex128) ## 1
-    #qudit_4 = np.array([1 / np.sqrt(2), -1 / np.sqrt(2)], dtype=np.complex128) ### 2
-    #qudit_3 = np.array([0, 1], dtype=np.complex128) #### 3
     base01 = np.kron(np.kron(np.kron(qudit_10, qudit_20), qudit_30), qudit_40)
     base00 = np.kron(np.kron(np.kron(qudit_10, qudit_21), qudit_30), qudit_40)
     base11 = np.kron(np.kron(np.kron(qudit_10, qudit_20), qudit_30), qudit_41)
@@ -29,8 +25,8 @@ def measurement(ang1, ang2):
     return base00, base01, base10, base11
 
 
-def measurement_balanced(ang1, ang2):
-    # SPIN = qudit_1, PHOTON_1 = qudit_2, etc....
+def measurement_balanced():
+    
     qudit_10 = np.array([1 / np.sqrt(2), -1j / np.sqrt(2), 0, 0], dtype=np.complex128) # qubit 2
     qudit_20 = np.array([0, 1, 0, 0], dtype=np.complex128) # qubit 3
     qudit_30 = np.array([0, 1 / np.sqrt(2), -1 / np.sqrt(2), 0], dtype=np.complex128) # qubit 4
@@ -130,6 +126,7 @@ def generate_ideal_line(numb_photons):
     ex, early_gate, late_gate, X_full_perfect, X_half_perfect, state, H_gate_photon_1, H_gate_photon_2, H_gate_photon_3 = gates_state(
         numb_photons, 1, 0, 0, density=False)
     Z_rot_gate_1, Z_rot_gate_2, Z_rot_gate_3, X_rot_gate_1, Z_rot_spin = photon_rotations()
+
     state = photo_gen_ideal(state, ex, early_gate, late_gate, X_full_perfect)
     state = np.matmul(H_gate_photon_1, state)
     v, state = switch(state, numb_photons)
@@ -158,18 +155,19 @@ if __name__ == "__main__":
     
     #density_matrix = generate_line_inv(3) # with inv x-rot instead of LC-x on spin
     density_matrix = generate_line(3)
-    base = measurement_balanced(1, 1)
+    base = measurement_balanced()
     
     fid00 = np.matmul(np.matmul(np.conjugate(base[0]).transpose(), density_matrix), base[0])
     fid01 = np.matmul(np.matmul(np.conjugate(base[1]).transpose(), density_matrix), base[1])
     fid10 = np.matmul(np.matmul(np.conjugate(base[2]).transpose(), density_matrix), base[2])
     fid11 = np.matmul(np.matmul(np.conjugate(base[3]).transpose(), density_matrix), base[3])
+
     print(fid00, fid01, fid10, fid11)
     print((fid00 + fid01 + fid10 + fid11) * 4)
+
     x = (abs(fid11) * 4, abs(fid01) * 4, abs(fid10) * 4, abs(fid00) * 4)
-    width = (0.4, 0.4, 0.4, 0.4)
     y = ("|11>", "|01>", "|10>", "|00>")
     plt.bar(y, x, 0.4, align='center')
     plt.ylabel('Probability')
-    plt.title(r'Constant function with $s_2 = 1, s_4 = 1$')
+    plt.title(r'Constant function with $s_2 = 0, s_4 = 0$')
     plt.show()
