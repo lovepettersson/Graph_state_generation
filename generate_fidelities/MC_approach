@@ -31,6 +31,34 @@ def spin_unitary(phi, rabi, time, deltaOH):
 
 
 
+def spin_inverse_unitary(phi, rabi, time, deltaOH):
+    norm = 1 / np.sqrt((rabi) ** 2 + (deltaOH ** 2))
+    theta = (time / 2) / norm
+    identity_part = np.array([[1 * np.cos(theta), 0, 0, 0],
+                              [0, 1 * np.cos(theta), 0, 0],
+                              [0, 0, 1, 0],
+                              [0, 0, 0, 1]])
+
+    x_part = np.array([[0, 1 * (1j) * np.sin(theta) * rabi*np.cos(phi) * norm, 0, 0],
+                       [1 * (1j) * np.sin(theta) * rabi*np.cos(phi) * norm, 0, 0, 0],
+                       [0, 0, 1, 0],
+                       [0, 0, 0, 1]])
+
+    y_part = np.array([[0, -1j * (1j) * np.sin(theta) * rabi*np.sin(phi) * norm, 0, 0],
+                       [1j * (1j) * np.sin(theta) * rabi*np.sin(phi) * norm, 0, 0, 0],
+                       [0, 0, 1, 0],
+                       [0, 0, 0, 1]])
+
+    z_part = np.array([[1 * (1j) * np.sin(theta) * (-deltaOH) * norm, 0, 0, 0],
+                       [0, -1 * (1j) * np.sin(theta) * (-deltaOH) * norm, 0, 0],
+                       [0, 0, 1, 0],
+                       [0, 0, 0, 1]]
+                                  )
+
+    rotation_unitary = identity_part + y_part + x_part + z_part
+    return rotation_unitary
+
+
 def prob_dist(kappa):
     t_f = np.random.exponential(1/kappa)
     return t_f
