@@ -76,8 +76,6 @@ def rot_uni_arb(t_dur, state_evolved, kappa, numb_photons, C1, C2):
                 rot = np.kron(rot, iden)
             psi = np.matmul(rot, psi)
             p1 = np.linalg.norm(np.matmul(C1, psi)) ** 2
-            p2 = np.linalg.norm(np.matmul(C2, psi)) ** 2
-            ### EXACTLY LIKE MARTIN
             if np.random.uniform() < p1:
                 psi = np.matmul(C1, psi) / (np.sqrt(p1))
             else:
