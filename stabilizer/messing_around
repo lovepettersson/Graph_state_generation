@@ -88,12 +88,10 @@ if __name__ == "__main__":
 				print("Graph number {} with node {} as logical Z op".format(i, j))
 				print(stab.distance)
 	
-	#stab = q.StabilizerCode(['ZXZII', 'IZXZI', 'IIZXZ', 'ZIIZX'], ['ZZZZZ'], ['XZIIZ'])
 	# Sanity checking graph 73 to actually have distance 3.
 	stab = q.StabilizerCode(['ZIIIIX', 'IIIZXI', 'ZZIXZI', 'IZXIII', 'IXZZII'], ['ZZZZZZ'], ['XIIZIZ'])
 	print(stab.distance)
+	# Printing syndrome measurements and respecive recovery operator. Number of measurements should be 2**5 for a code with distance 3 and 5 logical qubits(5 stabilizers)
 	synd = (tuple(stab.syndromes_and_recovery_operators()))
 	synd = list(synd)
 	print(len(synd))
-	#stab = get_stabs(graph, 2)
-	#print(stab.distance)
