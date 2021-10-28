@@ -17,8 +17,7 @@ def get_stabs(G, target_node):
 			track.remove(target)
 			Z = Z[:target] + ['X'] + Z[target + 1:]
 			X = X[:target] + ['Z'] + X[target + 1:]
-			for edge in edges:
-				neigh.append(edge[1])
+			neigh = [edge[1] for edge in edges]
 			neigh.sort()
 			for idx in neigh:
 				track.remove(idx)
@@ -35,8 +34,7 @@ def get_stabs(G, target_node):
 			target = edges[0][0]
 			track.remove(target)
 			S[count] = S[count][:target] + ['X'] + S[count][target + 1:]
-			for edge in edges:
-				neigh.append(edge[1])
+			neigh = [edge[1] for edge in edges]
 			neigh.sort()
 			for idx in neigh:
 				track.remove(idx)
