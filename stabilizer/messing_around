@@ -1,0 +1,99 @@
+import qecc as q
+import networkx as nx
+import json
+
+def get_stabs(G, target_node):
+	# Target_node's stabilizer is the logical Z operator 
+	X = [0] * G.number_of_nodes()
+	Z = [0] * G.number_of_nodes()
+	S = [[0] * G.number_of_nodes()] * (G.number_of_nodes() - 1)
+	count = 0
+	for node in G.nodes:
+		if node == target_node:
+			track = [n for n in range(G.number_of_nodes())]
+			neigh = []
+			edges = list(G.edges(node))
+			target = edges[0][0]
+			track.remove(target)
+			Z = Z[:target] + ['X'] + Z[target + 1:]
+			X = X[:target] + ['Z'] + X[target + 1:]
+			for edge in edges:
+				neigh.append(edge[1])
+			neigh.sort()
+			for idx in neigh:
+				track.remove(idx)
+				Z = Z[:idx] + ['Z'] + Z[idx + 1:]
+				X = X[:idx] + ['Z'] + X[idx + 1:]
+			for numb in track:
+				X = X[:numb] + ['Z'] + X[numb + 1:]
+				Z = Z[:numb] + ['I'] + Z[numb + 1:]	
+			
+		else:
+			track = [n for n in range(G.number_of_nodes())]
+			neigh = []
+			edges = list(G.edges(node))
+			target = edges[0][0]
+			track.remove(target)
+			S[count] = S[count][:target] + ['X'] + S[count][target + 1:]
+			for edge in edges:
+				neigh.append(edge[1])
+			neigh.sort()
+			for idx in neigh:
+				track.remove(idx)
+				S[count] = S[count][:idx] + ['Z'] + S[count][idx + 1:]
+			for numb in track:
+				S[count] = S[count][:numb] + ['I'] + S[count][numb + 1:]
+			count += 1
+
+	S_fin = []
+	X_fin = []
+	Z_fin = []
+	for stab in S:
+		con_stab = ''.join(stab)
+		S_fin.append(con_stab)
+	con_X = ''.join(X)
+	X_fin.append(con_X)
+	con_Z = ''.join(Z)
+	Z_fin.append(con_Z)
+	stab = q.StabilizerCode(S_fin, X_fin, Z_fin)
+	return stab
+
+
+
+def get_graph(iter_dict, graph_numb):
+	graph_iter_dict = iter_dict[graph_numb] # graph_numb is a string
+	key_list = []
+	for key in graph_iter_dict:
+		key_list.append(key)
+	nodes = int(key_list[0]) + 1
+	edges = []
+	for edge in graph_iter_dict[key_list[0]]["graph"][1]:
+		edges.append((edge[0], edge[1]))
+	edges = (tuple(edges))
+	G = nx.Graph()
+	G.add_edges_from(edges)
+	return G, nodes
+
+if __name__ == "__main__":
+	path = r'/home/lovepettersson/python-quaec/final_iter_dict.json'
+	f = open(path)
+	the_dict = json.load(f)
+	
+	for i in range(10, 471):
+		graph, nodes = get_graph(the_dict, str(i))
+		for j in range(nodes):
+			stab = get_stabs(graph, j)
+		#print(stab.distance)
+			if stab.distance > 3:
+				print("Graph number {} with node {} as logical Z op".format(i, j))
+				print(stab.distance)
+	
+	#stab = q.StabilizerCode(['ZXZII', 'IZXZI', 'IIZXZ', 'ZIIZX'], ['ZZZZZ'], ['XZIIZ'])
+	# Sanity checking graph 73 to actually have distance 3.
+	stab = q.StabilizerCode(['ZIIIIX', 'IIIZXI', 'ZZIXZI', 'IZXIII', 'IXZZII'], ['ZZZZZZ'], ['XIIZIZ'])
+	print(stab.distance)
+	synd = (tuple(stab.syndromes_and_recovery_operators()))
+	synd = list(synd)
+	print(len(synd))
+	#stab = get_stabs(graph, 2)
+	#print(stab.distance)

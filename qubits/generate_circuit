@@ -1,10 +1,11 @@
 import networkx as nx
 import numpy as np
 import json
-from lc_equivalence import check_LCequiv
+import sys
+#from lc_equivalence import check_LCequiv
 import cirq
 from cirq.ops import CZ, H, S, Z, I, X
-
+sys.path.append("/home/lovepettersson/gsc/tests/")
 ### NOTES ###
 # Sometimes produces ismorphic states.. hence not equal vectors..
 # Different global phases depending on number of neighbours
@@ -246,7 +247,8 @@ def generation(graph_numb):
 
 if __name__ == "__main__":
     # Import json with data
-    path = r"C:\Users\Admin\data_8_qubits_no_isomorph.json"
+    #path = r"C:\Users\Admin\data_8_qubits_no_isomorph.json"
+    path = r'/home/lovepettersson/Graph_states_generation/qubits/data_no_isomorph_9_qubits.json'
     f = open(path)
     the_dict = json.load(f)
     # Generate the LC-sequence
