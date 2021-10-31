@@ -205,6 +205,7 @@ def LC_rotations_photons():
     return Z_rot_gate_1, Z_rot_gate_2, Z_rot_gate_3, X_rot_gate_1
 
 
+
 def LC_Z_spin(deltaOH):
     # THIS IS A SEPERATE FUNCTION BECAUSE WE ARE GOING TO SAMPLE THIS UNITARY DURING MC SIMULATION,
     # SPECIFICALLY DESIGN FOR DEUTSCH AND GROVER, I.E N=4.
@@ -215,6 +216,16 @@ def LC_Z_spin(deltaOH):
     Z_rot_spin = np.conjugate(spin_inverse_unitary(0, 0, np.pi / 2, 1 + deltaOH))
     Z_rot_spin = np.kron(np.kron(np.kron(Z_rot_spin, identity), identity), identity)
     return Z_rot_spin
+
+
+def gen_new_photon_y_x(numb_photons, kappa,  ex, early_gate, late_gate, state, C1, C2, deltaOH, H):
+    rot_state = np.matmul(ex, state)
+    rot_state = np.matmul(late_gate, rot_state)
+    rot_state = rot_uni_arb(7, rot_state, kappa, numb_photons, C1, C2, deltaOH, 0)
+    rot_state = np.matmul(ex, rot_state)
+    rot_state = np.matmul(early_gate, rot_state)
+    rot_state = np.matmul(H, rot_state)
+    return rot_state
 
 
 def gen_new_photon(numb_photons, kappa,  ex, early_gate, late_gate, state, C1, C2):
