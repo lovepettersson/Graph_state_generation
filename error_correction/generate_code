@@ -197,15 +197,21 @@ if  __name__ == "__main__":
 	f = open(path)
 	the_dict = json.load(f)
 	new_dict = {}
+
+	# change the range to consider in this loop are:
+	# 4-10 for all 4-qubit graphs
+	# 10-34 for all 5-qubit graphs
+	# 34-119 for all 6-qubit graphs
+
 	for i in range(4, 10):
 		graph, nodes = get_graph(the_dict, str(i))
 		X, S, Z = get_code(graph, 0)
 		if len(S) != 0:	
 			new_dict[str(i)] = [S, X, Z]
-			print(i)
-			print(S)
-			print(X)
-			print(Z)
+			print("graph number {}".format(i))
+			print("Generators compatible with logical X {}".format(S))
+			print("Logical X {}".format(X))
+			print("Logical Z".format(Z))
 	
 
 	with open('all_4_qubit_graphs.json', 'w') as outfile:
