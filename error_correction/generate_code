@@ -15,12 +15,8 @@ def get_code(G, target_node):
 			edges = list(G.edges(node))
 			target = edges[0][0]
 			track.remove(target)
-			#Z = Z[:target] + ['X'] + Z[target + 1:]
 			X = X[:target] + ['I'] + X[target + 1:]
 			neigh = [edge[1] for edge in edges]
-			#print(bajs)
-			#for edge in edges:
-			#       neigh.append(edge[1])
 			neigh.sort()
 			for idx in neigh:
 				track.remove(idx)
@@ -44,7 +40,7 @@ def get_code(G, target_node):
 				else:
 					Z = Z[:idx] + ['Z'] + Z[idx + 1:]
 			
-			#print(X)
+			
 		else:
 			track = [n for n in range(G.number_of_nodes())]
 			neigh = []
@@ -69,7 +65,6 @@ def get_code(G, target_node):
 				new_S.append(stab)
 				break
 	S = new_S
-	#print(S)
 	new_S = []
 	for stab in S:
 		count = 0
@@ -81,7 +76,6 @@ def get_code(G, target_node):
 			new_S.append(stab)		
 	
 	S = new_S
-	#print(S)
 	length = 10
 	good_matches = []
 	while length > 0:
@@ -101,21 +95,14 @@ def get_code(G, target_node):
 			S = S_new
 		else:
 			del S[the_indx]				
-		#print(S)
-		#print("GOOD MATCHES {}".format(good_matches))
 		length = len(S)
 	S = good_matches
-	#print(S)
 	counter = 0
 	count = []	
 	for stab in S:
 		for i in range(len(stab)):
 			if stab[i] == "X" and X[i] == "Z":
-				#print(stab)
 				count.append(counter)
-				#indx = S.index(stab)
-				#del S[counter]
-				#break
 	
 		counter += 1
 	counter = 0
@@ -140,7 +127,6 @@ def find_numb_Z(X, S):
 			if X[i] == "Z" and S[j][i] == "Z":
 				count +=1
 				break
-	#print(count)
 	if count == counter:
 		return True
 	else:
