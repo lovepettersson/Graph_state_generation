@@ -1,0 +1,434 @@
+import numpy as np
+import json
+from itertools import combinations
+import matplotlib.pyplot as plt
+from get_graph import generation, get_it
+
+
+def prob_den(operator, den_matrix):
+    projection = np.matmul(operator, np.matmul(den_matrix, np.conjugate(operator).transpose()))
+    prob = np.trace(projection)
+    projection = projection / prob
+    return prob, projection
+
+def get_given_graph(numb, eps, px, pz, photon_discount):
+    iter_dict = generation(numb)
+    key_list = []
+    for key in iter_dict:
+        key_list.append(key)
+    den_matrix = get_it(iter_dict, key_list, eps, px, pz, photon_discount)
+    return den_matrix
+
+def get_S(G):
+    """
+
+    :param G: set of generators
+    :return: set of stabilizers
+    """
+    numbered_G = []
+    for i in range(len(G)):
+        numbered_G.append(str(i))
+    numbered_G = ''.join(numbered_G)
+    per_list = []
+    for i in range(len(G)):
+        if i == 0:
+            continue
+        per = list(combinations(numbered_G, i +1))
+        per_list.append(per)
+    stab_cons = []
+    for lt in per_list[0]:
+        stab_con = []
+        stab0 = G[int(lt[0])]
+        stab1 = G[int(lt[1])]
+        for i in range(len(stab0)):
+            if (stab0[i] == 'I' and stab1[i] == 'Z') or (stab0[i] == 'Z' and stab1[i] == 'I'):
+                stab_con.append('Z')
+            elif (stab0[i] == 'I' and stab1[i] == 'X') or (stab0[i] == 'X' and stab1[i] == 'I'):
+                stab_con.append('X')
+            elif (stab0[i] == 'I' and stab1[i] == 'I'):
+                stab_con.append('I')
+            elif (stab0[i] == 'Z' and stab1[i] == 'Z'):
+                stab_con.append('I')
+        stab_cons.append(stab_con)
+    if len(per_list) == 2: # If we have three generators
+        for lt in per_list[1]:
+            stab_con = []
+            stab0 = G[int(lt[0])]
+            stab1 = G[int(lt[1])]
+            stab2 = G[int(lt[2])]
+            for i in range(len(stab0)):
+                if (stab0[i] == 'I' and stab1[i] == 'Z' and stab2[i] == 'I') or (stab0[i] == 'Z' and stab1[i] == 'I' and stab2[i] == 'I') or (stab0[i] == 'I' and stab1[i] == 'I' and stab2[i] == 'Z'):
+                    stab_con.append('Z')
+                elif (stab0[i] == 'I' and stab1[i] == 'X' and stab2[i] == 'I') or (stab0[i] == 'X' and stab1[i] == 'I' and stab2[i] == 'I') or (stab0[i] == 'I' and stab1[i] == 'I' and stab2[i] == 'X'):
+                    stab_con.append('X')
+                elif (stab0[i] == 'I' and stab1[i] == 'I' and stab2[i] == 'I') or (stab0[i] == 'I' and stab1[i] == 'X' and stab2[i] == 'X') or (stab0[i] == 'X' and stab1[i] == 'X' and stab2[i] == 'I') or (stab0[i] == 'X' and stab1[i] == 'I' and stab2[i] == 'X'):
+                    stab_con.append('I')
+                elif (stab0[i] == 'Z' and stab1[i] == 'Z' and stab2[i] == 'I') or (stab0[i] == 'Z' and stab1[i] == 'I' and stab2[i] == 'Z') or (stab0[i] == 'I' and stab1[i] == 'Z' and stab2[i] == 'Z'):
+                    stab_con.append('I')
+                elif (stab0[i] == 'Z' and stab1[i] == 'Z' and stab2[i] == 'Z'):
+                    stab_con.append('Z')
+            stab_cons.append(stab_con)
+    return stab_cons
+
+
+
+
+def weigth(S, M, px, pz, single_flag=True):
+    """
+    :param S: set or single stab
+    :param M: single stab or X, the operator to find weight to
+    :param single_flag: indicates if S is a set of stab or only a single stab
+    :return:
+    """
+    wt_list = []
+    if single_flag == False:
+        stab = S
+        numerator = 0
+        denominator = 0
+        for i in range(len(M)):
+            if stab[i] == M[i] == "Z" or stab[i] == M[i] == "Z":
+                numerator += px
+            elif stab[i] == M[i] == "X" or stab[i] == M[i] == "X":
+                numerator += pz
+        for i in range(len(stab)):
+            if stab[i] == "Z":
+                denominator += px
+            if stab[i] == "X":
+                denominator += pz
+        wt = numerator / denominator
+        wt_list.append(wt)
+    else:
+        for stab in S:
+
+            numerator = 0
+            denominator = 0
+            for i in range(len(M)):
+                if stab[i] == M[i] == "Z":
+                    numerator += px
+                elif stab[i] == M[i] == "X":
+                    numerator += pz
+            for i in range(len(stab)):
+                if stab[i] == "Z":
+                    denominator += px
+                elif stab[i] == "X":
+                    denominator += pz
+            wt = numerator / denominator
+
+            wt_list.append(wt)
+    return wt_list
+
+
+
+
+def meas_projectors(B):
+    """
+    :param B: which basis to measure each qubit
+    :return: the projectors corresponding to B. This is a list of lists, where the inner list contatins
+    projector up and down.
+    """
+    # B for bases :D
+    identity = np.array([[1, 0],
+                         [0, 1]], dtype=np.complex128)
+    Z_up = np.array([1, 0], dtype=np.complex128)
+    Z_down = np.array([0, 1], dtype=np.complex128)
+    X_up = np.array([1 / np.sqrt(2), 1 / np.sqrt(2)], dtype=np.complex128)
+    X_down = np.array([1 / np.sqrt(2), -1 / np.sqrt(2)], dtype=np.complex128)
+
+    Z_up = np.outer(Z_up, Z_up.transpose())
+    Z_down = np.outer(Z_down, Z_down.transpose())
+    X_up = np.outer(X_up, X_up.transpose())
+    X_down = np.outer(X_down, X_down.transpose())
+
+    pattern = []
+    for i in range(len(B)):
+        if i == 0:
+            if B[i] == 'X':
+                op_up = X_up
+                op_dw = X_down
+            else:
+                op_up = Z_up
+                op_dw = Z_down
+        else:
+            op_up = identity
+            op_dw = identity
+        for j in range(1, len(B)):
+            if B[i] == 'X':
+                if i == j:
+                    op_up = np.kron(op_up, X_up)
+                    op_dw = np.kron(op_dw, X_down)
+                else:
+                    op_up = np.kron(op_up, identity)
+                    op_dw = np.kron(op_dw, identity)
+            else:
+                if i == j:
+                    op_up = np.kron(op_up, Z_up)
+                    op_dw = np.kron(op_dw, Z_down)
+                else:
+                    op_up = np.kron(op_up, identity)
+                    op_dw = np.kron(op_dw, identity)
+        pattern.append([op_up, op_dw])
+
+    return pattern
+
+
+def get_B(S):
+    """
+    :param S: list of all stabilizers
+    :return: A list of measurement basis for each qubit with qubit 0 being element 0, qubit 1 is element 1 etc.
+    """
+    B = []
+    for i in range(len(S[0])):
+        if i == 0:
+            B.append('X')
+        else:
+            B.append('I')
+    for stab in S:
+        for i in range(len(stab)):
+            if B[i] == 'I' and stab != 'I':
+                del B[i]
+                B.insert(i, stab[i])
+    return B
+
+
+
+def get_Z_pattern(Z):
+    """
+    :param S: list of all stabilizers
+    :return: A list of measurement basis for each qubit with qubit 0 being element 0.
+    """
+    B = []
+    for i in range(len(Z)):
+        if i == 0:
+            B.append('X')
+        else:
+            B.append('I')
+
+    for i in range(len(Z)):
+        if B[i] == 'I' and Z[i] != 'I':
+            del B[i]
+            B.insert(i, Z[i])
+    pattern = meas_projectors(B)
+    return pattern
+
+
+def S_ord(S, wt_list):
+    """
+
+    :param S: Set of satbilizers
+    :param wt_list: Weight of each stabilizer
+    :return: Set of stabilizers ordered by their weigth to logical X
+    """
+    S_new = []
+    for wt in range(len(S)):
+        max = 0
+        for wt in wt_list:
+            if wt > max:
+                max = wt
+        idx = (wt_list.index(max))
+        S_new.append(S[idx])
+        del wt_list[idx]
+        del S[idx]
+    return S_new
+
+def get_logical_Z(pattern, den_matrix, Z):
+    """
+
+    :param pattern: Measurement pattern
+    :param den_matrix: Density matrix
+    :param Z: The logical Z
+    :return: Measured logical_Z
+    """
+    observables = [1 for i in range(len(pattern) - 1)]
+    observables.insert(0, 0)
+    for i in range(len(pattern)):
+        if i == 0:
+            P, den_matrix = prob_den(pattern[i][0], den_matrix)
+        else:
+            up, down = pattern[i]
+            P_up, state_up = prob_den(up, den_matrix)
+            P_down, state_down = prob_den(down, den_matrix)
+            if P_up > np.random.uniform():
+                observables[i] = observables[i] * 1
+                den_matrix = state_up
+            else:
+                observables[i] = observables[i] * (-1)
+                den_matrix = state_down
+
+    Z_measured = 1
+    for i in range(len(Z)):
+        if Z[i] != 'I':
+            Z_measured = Z_measured * observables[i]
+
+    return Z_measured
+
+
+
+def get_logical_X(pattern, den_matrix, S, X, S_dict, px, pz):
+    observables = [1 for i in range(len(pattern) - 1)]
+    observables.insert(0, 0)
+    # Following loop generates the measurement outcome for each qubit and appends it to "observables"
+    for i in range(len(pattern)):
+        if i == 0:
+            P, den_matrix = prob_den(pattern[i][0], den_matrix)
+        else:
+            up, down = pattern[i]
+            P_up, state_up = prob_den(up, den_matrix)
+            P_down, state_down = prob_den(down, den_matrix)
+            if P_up > np.random.uniform():
+                observables[i] = observables[i] * 1
+                den_matrix = state_up
+            else:
+                observables[i] = observables[i] * (-1)
+                den_matrix = state_down
+
+    S_measured = []
+    X_measured = 1
+    # Two following loops generate the measured value of each stabilizer and logical X
+    for stab in S:
+        s = 1
+        for i in range(len(stab)):
+            if stab[i] != 'I':
+                s = s * observables[i]
+        S_measured.append(s)
+    for i in range(len(X)):
+        if X[i] != 'I':
+            X_measured = X_measured * observables[i]
+
+    # Given the value of the stabilizer, send logical X to "correction" to be corrected
+    X_measured = correction(S_dict, S, S_measured, px, pz, X_measured)
+
+    return X_measured
+
+def correction(S_dict, S, S_measured, px, pz, X_measured):
+    """
+
+    :param S_dict: A dict containing the weigth of each stab to logical X
+    :param S: The stabilizers
+    :param S_measured: The measured value of the stabilizers
+    :param X: no need
+    :param X_measured: The measured value of logical X
+    :return: The corrected value of logical X
+    """
+    keys = S_dict.keys()
+    keys = sorted(keys)
+    counter = 0
+    idx_counter = []
+    for key in keys:
+        if counter == len(keys) - 1:
+            numb = len(S_dict[key])
+            S_true_list = []
+            for i in range(numb):
+                if S_measured[i] == -1:
+                    S_true_list.append(True)
+                else:
+                    S_true_list.append(False)
+            if all(S_true_list):
+                wt = key
+                if float(wt) > 0.5:
+                    X_measured = X_measured * (-1)
+
+        else:
+
+            for stab in S_dict[key]:
+                idx = S.index(stab)
+                idx_counter.append(idx)
+                for i in range(len(S)):
+                    if i in idx_counter:
+                        continue
+                    else:
+                        wt = weigth(S[idx], S[i], px, pz, False)
+                        if S_measured[idx] == -1:
+                            if wt[0] > np.random.uniform():
+                                S_measured[i] = S_measured[i] * (-1)
+
+            counter += 1
+
+    return X_measured
+
+
+
+def generate(G, X, px, pz):
+    """
+
+    :param G: The generators of the code
+    :return: A dict with the weight of all stabilizers to logical X, the stabilizers themselves,
+    and the pattern of the measurements.
+    """
+    if len(G) == 1:
+        S = G
+    else:
+        S = get_S(G)
+        S = G + S
+
+    wt_list = weigth(S, X, px, pz, True)
+    S = S_ord(S, wt_list)
+    wt_list = weigth(S, X, px, pz, True)
+    B = get_B(S)
+    pattern = meas_projectors(B)
+    S_dict = {}
+    for i in range(len(wt_list)):
+        if i == 0:
+            S_dict[str(wt_list[i])] = []
+            S_dict[str(wt_list[i])].append(S[i])
+
+        elif wt_list[i - 1] == wt_list[i]:
+            S_dict[str(wt_list[i])].append(S[i])
+
+        else:
+            S_dict[str(wt_list[i])] = []
+            S_dict[str(wt_list[i])].append(S[i])
+    return S_dict, S, pattern
+
+
+def simulate(the_dict, px, pz, photon_discount, monte_steps):
+    keys = the_dict.keys()
+    epsilon = np.linspace(0, 1, 20)
+    for key in keys:
+        G = the_dict[key][0]
+        X = the_dict[key][1]
+        #Z = the_dict[key][2]
+        #pattern_Z = get_Z_pattern(Z)
+        S_dict, S, pattern_X = generate(G, X, px, pz)
+        print("Simulating graph number {}".format(key))
+        print("These are stabilizer and their corresponding weight to X {}".format(S_dict))
+        X_l = []
+        Z_l = []
+        for eps in epsilon:
+            den_matrix = get_given_graph(int(key), eps, px, pz, photon_discount)
+            X_count = 0
+            Z_count = 0
+            for i in range(monte_steps):
+                X_count += (get_logical_X(pattern_X, den_matrix, S, X, S_dict, px, pz)) / monte_steps
+                #Z_count += (get_logical_Z(pattern_Z, den_matrix, Z)) / monte_steps
+
+            X_l.append(X_count)
+            Z_l.append(Z_count)
+        plt.plot(epsilon, X_l, label="X-" + key)
+        #plt.plot(epsilon, Z_l, label="Z-" + key)
+
+    new_eps = [1 - eps for eps in epsilon]
+    plt.plot(epsilon, new_eps, label="eps")
+    plt.xlabel("epsilon")
+    plt.ylabel("epsilon_L")
+    plt.legend()
+    plt.show()
+
+
+if __name__ == "__main__":
+    # The dict should be on the form:
+    # dict = {graph_number:[list of S, logical X, logical Z]} and is generated in ...
+    # For generating the graph you will need the catalogue of graphs, stored in a json file. This
+    # json file is uploaded on github as well.
+    path = r"C:\Users\Admin\all_4_qubit_graphs.json"
+    f = open(path)
+    the_dict = json.load(f)
+
+    # variables for noise-channel and monte-sampling.
+    px = 2 / 3
+    pz = 1 / 3
+    photon_discount = 1 / 4
+    monte_steps = 10000
+
+    # simulate all the graphs that are in "the_dict".
+    simulate(the_dict, px, pz, photon_discount, monte_steps)
+
