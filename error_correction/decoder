@@ -416,7 +416,7 @@ def simulate(the_dict, px, pz, photon_discount, monte_steps):
 
 if __name__ == "__main__":
     # The dict should be on the form:
-    # dict = {graph_number:[list of S, logical X, logical Z]} and is generated in ...
+    # dict = {graph_number:[list of S, logical X, logical Z]} and is generated in "generate_code"
     # For generating the graph you will need the catalogue of graphs, stored in a json file. This
     # json file is uploaded on github as well.
     path = r"C:\Users\Admin\all_4_qubit_graphs.json"
