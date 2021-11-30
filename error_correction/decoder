@@ -2,7 +2,7 @@ import numpy as np
 import json
 from itertools import combinations
 import matplotlib.pyplot as plt
-from get_graph import generation, get_it
+from get_graph import get_it
 
 
 def prob_den(operator, den_matrix):
@@ -11,8 +11,10 @@ def prob_den(operator, den_matrix):
     projection = projection / prob
     return prob, projection
 
-def get_given_graph(numb, eps, px, pz, photon_discount):
-    iter_dict = generation(numb)
+def get_given_graph(numb, eps, px, pz, photon_discount, path_catalouge):
+    f = open(path_catalouge)
+    iter_dict = json.load(f)
+    iter_dict = iter_dict[str(numb)]
     key_list = []
     for key in iter_dict:
         key_list.append(key)
@@ -380,7 +382,7 @@ def generate(G, X, px, pz):
     return S_dict, S, pattern
 
 
-def simulate(the_dict, px, pz, photon_discount, monte_steps):
+def simulate(the_dict, px, pz, photon_discount, monte_steps, path_catalouge):
     keys = the_dict.keys()
     epsilon = np.linspace(0, 1, 20)
     for key in keys:
@@ -394,7 +396,7 @@ def simulate(the_dict, px, pz, photon_discount, monte_steps):
         X_l = []
         Z_l = []
         for eps in epsilon:
-            den_matrix = get_given_graph(int(key), eps, px, pz, photon_discount)
+            den_matrix = get_given_graph(int(key), eps, px, pz, photon_discount, path_catalouge)
             X_count = 0
             Z_count = 0
             for i in range(monte_steps):
@@ -419,8 +421,9 @@ if __name__ == "__main__":
     # dict = {graph_number:[list of S, logical X, logical Z]} and is generated in "generate_code"
     # For generating the graph you will need the catalogue of graphs, stored in a json file. This
     # json file is uploaded on github as well.
-    path = r"C:\Users\Admin\all_4_qubit_graphs.json"
-    f = open(path)
+    path_catalouge = r"C:\Users\Admin\graph_catalouge_6_qubits.json"
+    path_codes = r"C:\Users\Admin\all_4_qubit_graphs.json"
+    f = open(path_codes)
     the_dict = json.load(f)
 
     # variables for noise-channel and monte-sampling.
@@ -430,5 +433,5 @@ if __name__ == "__main__":
     monte_steps = 10000
 
     # simulate all the graphs that are in "the_dict".
-    simulate(the_dict, px, pz, photon_discount, monte_steps)
+    simulate(the_dict, px, pz, photon_discount, monte_steps, path_catalouge)
 
