@@ -184,7 +184,7 @@ if  __name__ == "__main__":
 	the_dict = json.load(f)
 	new_dict = {}
 
-	# change the range to consider in this loop are:
+	# Ranges to consider in this loop are:
 	# 4-10 for all 4-qubit graphs
 	# 10-34 for all 5-qubit graphs
 	# 34-119 for all 6-qubit graphs
