@@ -5,6 +5,31 @@ import matplotlib.pyplot as plt
 from get_graph import get_it
 
 
+def single_qubit(eps, px, pz):
+    circuit = cirq.Circuit()
+    q = cirq.LineQubit.range(1)
+    circuit.append([H(qubit) for qubit in q])
+    pol = cirq.asymmetric_depolarize(
+        p_x=px * eps,
+        p_y=(1 - px - pz),
+        p_z=pz * eps,
+    )
+    circuit.append([pol.on(qs) for qs in q])
+    dsim = cirq.DensityMatrixSimulator()
+    den_matrix = dsim.simulate(circuit).final_density_matrix
+
+    X_up = np.array([1 / np.sqrt(2), 1 / np.sqrt(2)], dtype=np.complex128)
+    X_up = np.outer(X_up, X_up.transpose())
+    P2, den_matrix = prob_den(X_up, den_matrix)
+    X = 0
+    for i in range(10000):
+        if P2 > np.random.uniform():
+            X += 1 / 10000
+        else:
+            X -= 1 / 10000
+    return X
+
+
 def prob_den(operator, den_matrix):
     projection = np.matmul(operator, np.matmul(den_matrix, np.conjugate(operator).transpose()))
     prob = np.trace(projection)
@@ -409,8 +434,8 @@ def simulate(the_dict, px, pz, photon_discount, monte_steps, path_catalouge):
         plt.plot(epsilon, X_l, label="X-" + key)
         #plt.plot(epsilon, Z_l, label="Z-" + key)
 
-    new_eps = [1 - eps for eps in epsilon]
-    plt.plot(epsilon, new_eps, label="eps")
+    S_X = [single_qubit(eps, px, pz) for eps in epsilon]
+    plt.plot(epsilon, S_X, label="Single spin")
     plt.xlabel("epsilon")
     plt.ylabel("epsilon_L")
     plt.legend()
