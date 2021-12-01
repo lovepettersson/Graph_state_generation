@@ -307,7 +307,8 @@ def correction(S_dict, S, S_measured, px, pz, X_measured):
     :param S_dict: A dict containing the weigth of each stab to logical X
     :param S: The stabilizers
     :param S_measured: The measured value of the stabilizers
-    :param X: no need
+    :param px: Probability of X_flip
+    :param pz: Probability of Z-flip
     :param X_measured: The measured value of logical X
     :return: The corrected value of logical X
     """
@@ -417,10 +418,7 @@ def simulate(the_dict, px, pz, photon_discount, monte_steps, path_catalouge):
 
 
 if __name__ == "__main__":
-    # The dict should be on the form:
-    # dict = {graph_number:[list of S, logical X, logical Z]} and is generated in "generate_code"
-    # For generating the graph you will need the catalogue of graphs, stored in a json file. This
-    # json file is uploaded on github as well.
+   
     path_catalouge = r"C:\Users\Admin\graph_catalouge_6_qubits.json"
     path_codes = r"C:\Users\Admin\all_4_qubit_graphs.json"
     f = open(path_codes)
