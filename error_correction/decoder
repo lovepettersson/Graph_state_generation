@@ -452,7 +452,7 @@ if __name__ == "__main__":
     # variables for noise-channel and monte-sampling.
     px = 2 / 3
     pz = 1 / 3
-    photon_discount = 1 / 4
+    photon_discount = 1
     monte_steps = 10000
 
     # simulate all the graphs that are in "the_dict".

@@ -16,7 +16,7 @@ def graph(iter_dict, key_list, eps, px, pz, photon_discount):
         p_y=(1- px- pz) * eps,
         p_z=pz * eps,
     )
-    circuit.append([pol.on(q[0])])
+    #circuit.append([pol.on(q[0])])
     pol = cirq.asymmetric_depolarize(
         p_x=px * eps * photon_discount,
         p_y=(1 - px - pz) * eps * photon_discount,
