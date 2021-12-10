@@ -1,0 +1,97 @@
+import numpy as np
+import itertools
+import matplotlib.pyplot as plt
+
+
+def get_perm(per, length):
+    """
+    Called in "get_configurations".
+    :param per:
+    :param length:
+    :return:
+    """
+    list_per = itertools.permutations(per[0], length)
+    list_per = list(list_per)
+    clean_duplicates = []
+    for p0 in list_per:
+        count = 0
+        for p1 in list_per:
+            if p0 == p1:
+                count += 1
+        if p0 in clean_duplicates:
+            continue
+        else:
+            clean_duplicates.append(p0)
+    return clean_duplicates
+
+def get_configuration(numb):
+    """
+    Caveman way of getting all the configurations for graphs up to 7-qubits( including the input qubit).
+    Here "+" referes to no error and "-" to error.
+    :param numb: number of qubits
+    :return: all the configurations
+    """
+    permutation_four = [['+++'], ['++-'], ['+--'], ['---']]
+    permutation_five = [['+++-'], ['++--'], ['+---'], ['----'], ['++++']]
+    permutation_six = [['++++-'], ['+++--'], ['++---'], ['+----'], ['+++++'], ['-----']]
+    permutation_seven = [['+++++-'], ['++++--'], ['+++---'], ['++----'], ['+-----'], ['++++++'], ['------']]
+    configurations = []
+    if numb == 4:
+        for per in permutation_four:
+            new = get_perm(per, 3)
+            configurations = configurations + new
+
+    elif numb == 5:
+        for per in permutation_five:
+            new = get_perm(per, 4)
+            configurations = configurations + new
+
+    elif numb == 6:
+        for per in permutation_six:
+            new = get_perm(per, 5)
+            configurations = configurations + new
+
+    elif numb == 7:
+        for per in permutation_seven:
+            new = get_perm(per, 6)
+            configurations = configurations + new
+
+    return configurations
+
+
+def extract_PSM(config, p, S, M):
+    """
+    Calculates the probability of each configuration and the measured stabilizers and logical-operator M.
+    :param config: configurations to explore
+    :param p: probability of error
+    :param S: list of stabs, where the list for each stabilizer indicates the location of pauli operators
+    apart from identity. Example: S=ZXZI -----> [0, 1, 2] (i.e. leave index 3 out)
+    :param M: The same as for the stabilizers but for the logical operator
+    :return: prob of config, value of stabs and logical op.
+    """
+    new_config = []
+    prob_config = []
+    for i in range(len(config)):
+        if config[i] == "+":
+            new_config.append(1)
+            prob_config.append(1 - p)
+        else:
+            new_config.append(-1)
+            prob_config.append(p)
+
+    S_measured = []
+    for stab in S:
+        stab_measured = 1
+        for idx in stab:
+            stab_measured = stab_measured * new_config[idx]
+        S_measured.append(stab_measured)
+
+    M = 1
+    for idx in X_in:
+        M = M * new_config[idx]
+
+    probs_config = 1
+    for p in prob_config:
+        probs_config = probs_config * p
+
+    return probs_config, S_measured, M
