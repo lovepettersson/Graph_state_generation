@@ -95,3 +95,12 @@ def extract_PSM(config, p, S, M):
         probs_config = probs_config * p
 
     return probs_config, S_measured, M
+
+if __name__ == "__main__":
+    configs = configurations(5)
+    S = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]] # S_1 = ZXII, S_2 = ZIXI... stabilizers for star-5-qubit with one qubit as input.
+    M = [0] # M = ZIII
+    p = 0.1
+    for config in configs:
+        prob, S_meas, M_meas = extract_PSM(config, p, S, M)
+        print("The probability of getting config {} is equal to {} and results in measured stabilizers {} and logical M {}".format(config, p, S_meas, M_meas)) 
