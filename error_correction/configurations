@@ -96,6 +96,21 @@ def extract_PSM(config, p, S, M):
 
     return probs_config, S_measured, M
 
+
+def get_M(probs_config, M, up=True):
+    if up == True:
+        if M == 1:
+            prob_plus = probs_config
+        else:
+            prob_plus = 0
+    else:
+        if M == -1:
+            prob_plus = probs_config
+        else:
+            prob_plus = 0
+
+    return prob_plus
+
 if __name__ == "__main__":
     configs = configurations(5)
     S = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]] # S_1 = ZXII, S_2 = ZIXI... stabilizers for star-5-qubit with one qubit as input.
