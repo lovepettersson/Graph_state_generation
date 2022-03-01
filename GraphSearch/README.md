@@ -1,1 +1,1 @@
-generate_circuit requires "check_LC_equivalence" function. Can be found in Sam Morley's repository "graph state compass", https://github.com/sammorley-short/gsc.
+Generate_circuit requires "check_LC_equivalence" function. Can be found in Sam Morley's repository "graph state compass", https://github.com/sammorley-short/gsc. The code is written in vim, hence the files don't end with ".py".
