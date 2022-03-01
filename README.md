@@ -1,2 +1,2 @@
 # Graph_state_generation
-Code for generating graph states. This requires Sam Moreleys repository "graph state compass (gsc)". Furtheremore, there is code for generating the corresponding circuit that creates the given graph state from local complementation. Also implementing errors in the spin gates. To inculde excitation level "3" we are changing to qudits.
+Code for doing a graph search including the time-bin entanglement protocol and local complementation. Furthermore, there is code for performing indirect measurements of the spin with a Monte Carlo error model drawing probabilities from experimental parameters. Finally, there is code to simulate Grover and Deutsch algorithm using four qubits graphs.
