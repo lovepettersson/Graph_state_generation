@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from tqdm import tqdm
-from error_model_operators import LC, X_rots, Z_rots, extract_LC_sequences, \
+from IndirectMeasurements.error_model_operators import LC, X_rots, Z_rots, extract_LC_sequences, \
     spin_flip_op, rot_uni_arb, switch, optical_collapse_operators,\
     excite_collapse_operators
 
