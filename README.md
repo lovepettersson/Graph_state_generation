@@ -1,2 +1,2 @@
-# Graph_state_generation
-Code for doing a graph search including the time-bin entanglement protocol and local complementation. Furthermore, there is code for performing indirect measurements of the spin with a Monte Carlo error model drawing probabilities from experimental parameters. Finally, there is code to simulate Grover and Deutsch algorithm using four qubits graphs.
+# EverythingGraphStates
+Code for doing a graph search including the time-bin entanglement protocol and local complementation. Furthermore, there is code for performing indirect measurements of the spin with a Monte Carlo error model drawing probabilities from experimental parameters. Finally, there is code to simulate Grover and Deutsch algorithm using four qubits graphs. Except from the requirements, this code need the package "qecc" (found https://www.cgranade.com/python-quaec/stab.html) and some functions from: https://github.com/StefanoPaesani/LossTolerance.
