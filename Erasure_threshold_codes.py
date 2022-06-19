@@ -118,69 +118,7 @@ class ErasureDecoder(object):
                     tot_term += term
                     break
         return tot_term
-'''
-def erasure_z(p_fail, t, w):
-    return (1 - (1-w*p_fail)*(t**(1/p_fail)))
 
-
-def erasure_x(p_fail, t, w):
-    return (1 - (1-(1-w)*p_fail)*(t**(1/p_fail)))
-
-def gen_erase_prob_variable(p_z, p_x, configurations, succ_conf, pattern):
-    tot_term = 0
-    for config in configurations:
-        succ_meas = []
-        failed_meas = []
-        for i in range(len(config)):
-            if config[i] == "+":
-                succ_meas.append(i+1)
-            else:
-                failed_meas.append(i+1)
-        for set_in_list in succ_conf:
-            set_in_list = set(set_in_list)
-            succ_meas = set(succ_meas)
-            if set_in_list.issubset(succ_meas):
-                term = 1
-                for qbit in succ_meas:
-                    if pattern[qbit] == "X":
-                        term = term * (1-p_x)
-                    else:
-                        term = term* (1- p_z)
-                for qbit in failed_meas:
-                    if pattern[qbit] == "X":
-                        term = term * (p_x)
-                    else:
-                        term = term* (p_z)
-                tot_term += term
-                break
-    return tot_term
-
-
-def run_new_erase_decoder_zx(gstate, p_fail, loss, s):
-    values = []
-    decod0 = LT_IndMeasDecoder(gstate, 'X', in_qubit)
-    stab_X = decod0.all_stabs
-    stab_X = remove_Y(stab_X)
-    decod1 = LT_IndMeasDecoder(gstate, 'Z', in_qubit)
-    stab_Z = decod1.all_stabs
-    stab_Z = remove_Y(stab_Z)
-    configurations = get_configuration(len(stab_X[0][0])-1)
-    succ_config_Z = get_succ_conf(stab_Z)
-    succ_config_X = get_succ_conf(stab_X)
-    pattern_Z = gen_meas_pattern(stab_Z)
-    pattern_X  = gen_meas_pattern(stab_X)
-    for t in loss:
-        p_x = erasure_x(p_fail, t, s)
-        p_z = erasure_z(p_fail, t, s)
-        succ_X = gen_erase_prob_variable(p_z, p_x, configurations, succ_config_X, pattern_X)
-        succ_Z = gen_erase_prob_variable(p_z, p_x, configurations, succ_config_Z, pattern_Z)
-        fail_X = 1 - succ_X
-        fail_Z = 1 - succ_Z
-        print(succ_X)
-        average = (fail_X + fail_Z) / 2
-        values.append(average)
-    return values
-'''
 if __name__ == '__main__':
 
     graph = gen_random_connected_graph(6)
@@ -214,30 +152,4 @@ if __name__ == '__main__':
     plt.show()
 
 
-    '''
-    in_qubit = 0
-    ring_network_threshold = 0.1198
-    p_fail = 1 / 4
-    transmission = [0.98]
-    weigth = 0.001
-    arms = [3, 4, 5, 6, 7, 8, 9, 10]
-    actual_arms = [i - 1 for i in arms]
-    eras_plot_vals = []
-    thresold_ring = []
-    for i in arms:
-        graph = gen_star_graph(i, 0)
-        gstate = GraphState(graph)
-        decoder = ErasureDecoder(gstate, "X", 1/4, 0.98, 0.001)
-        print("my decoder {}".format(decoder.run_dec()))
-        encoded_erasure = run_new_erase_decoder_zx(gstate, p_fail, transmission, weigth)[0]
-        thresold_ring.append(ring_network_threshold)
-        eras_plot_vals.append(encoded_erasure)
-        print(encoded_erasure)
-    plt.plot(actual_arms, eras_plot_vals, "-o", label="encoded-GHZ")
-    plt.plot(actual_arms, thresold_ring, "k:", label="ring-network-threshold-value")
-    plt.title("$p_{fail} =$" + " {}, t = {} % and weigth = {}".format(p_fail, transmission[0], weigth))
-    plt.xlabel("Number of arms")
-    plt.ylabel("Encoded erasure prob.")
-    plt.legend()
-    plt.show()
-    '''
+
